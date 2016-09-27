@@ -15,11 +15,15 @@ public class Verify_Login extends BaseDriver{
 	@Test	
 	public void FlightLogin() throws Exception {
 		init(10);
-		//handlePopups();
-		implicitWait(7);
-		LoginPage login = new LoginPage(this.driverAndroid);
+		launchApp();
+//		handlePopups();		
+		LoginPage login = new LoginPage(this.driver);
 		login.verifyPageLoad();
-		closeApp(params);
+		implicitWait(5);
+		login.enterUserName("test");
+		login.enterPassword(this.property.getProperty("perfecto.password"));
+		login.clickLogin();
+		closeApp();
 	}
 
 	@BeforeClass 
@@ -28,7 +32,7 @@ public class Verify_Login extends BaseDriver{
 	}
 
 	@AfterClass
-	public void afterClass() {
+	public void afterClass() throws IOException {
 		tearDown();
 	}
 

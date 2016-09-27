@@ -1,5 +1,6 @@
 package utils;
 
+import java.awt.Desktop;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -15,18 +16,15 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.concurrent.TimeUnit;
-
-import javax.xml.bind.annotation.XmlTransient;
+import java.util.function.Function;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -35,29 +33,31 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 import org.testng.ITestContext;
 
-import com.google.common.base.Function;
 import com.perfectomobile.selenium.util.EclipseConnector;
 
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 
-public  class BaseDriver implements WebDriver {
+public  class BaseDriver {
 
 	private static final String HTTPS = "https://";
 	private static final String MEDIA_REPOSITORY = "/services/repositories/media/";
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
-	public WebDriver driver = null;
+	public AppiumDriver<?> driver = null;
 	public RemoteWebDriver remDriver;
-	public IOSDriver<WebElement> driverIOS;
-	public AndroidDriver<WebElement> driverAndroid;
+	/*	public static IOSDriver<WebElement> driverIOS;
+	public static AndroidDriver<WebElement> driverAndroid;*/
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
 	public String appName;
+	public static String driverType;
 	@XmlTransient public Properties property;
 
 	/**
@@ -259,81 +259,28 @@ public  class BaseDriver implements WebDriver {
 
 	/**
 	 * @param locator
-	 * @param driver 
 	 * @param timeout
 	 * @description  Waits for objects to load before proceding !!! 
 	 */
-	public static WebElement fluentWait(final By locator, BaseDriver driver, long timeout) {	 
-		try {
-			FluentWait<BaseDriver> wait = new FluentWait<BaseDriver>(driver)
-					.withTimeout(timeout, TimeUnit.SECONDS)
-					.pollingEvery(250, TimeUnit.MILLISECONDS)
-					.ignoring(Exception.class)
-					.ignoring(NoSuchElementException.class);
+	public static WebElement fluentWait(final By locator, AppiumDriver<WebElement> driver, long timeout) {	 
 
-			WebElement webelement = wait.until(new Function<BaseDriver, WebElement>() {
-				public WebElement apply(BaseDriver driver) {
-					return driver.findElement(locator);
-				}
-			});
-			return  webelement;
-		} catch (Exception e) {
+		Wait<WebDriver> await = new FluentWait<WebDriver> (driver)
+				.withTimeout(timeout, TimeUnit.SECONDS)
+				.pollingEvery(500, TimeUnit.MILLISECONDS)
+				.ignoring(NoSuchElementException.class);
+		try {	
+			await.until(ExpectedConditions.visibilityOf(driver.findElement(locator)));
+			return driver.findElement(locator);
+		}catch(Exception e){
 			return null;
-		}	
+		}
 	}
 
 	/**
-	 * @param locator
-	 * @param driver - Android
-	 * @param timeout
-	 * @description  Waits for objects to load before proceding !!! 
+	 * @param context 
+	 * @description Creates the driver
 	 */
-	public static WebElement fluentWait(final By locator, AndroidDriver<WebElement> driverAndroid, long timeout) {	 
-		try {
-			FluentWait<AndroidDriver> wait = new FluentWait<AndroidDriver>(driverAndroid)
-					.withTimeout(timeout, TimeUnit.SECONDS)
-					.pollingEvery(250, TimeUnit.MILLISECONDS)
-					.ignoring(Exception.class)
-					.ignoring(NoSuchElementException.class);
-
-			WebElement webelement = wait.until(new Function<AndroidDriver, WebElement>() {
-				public WebElement apply(AndroidDriver driverAndroid) {
-					return driverAndroid.findElement(locator);
-				}
-			});
-			return  webelement;
-		} catch (Exception e) {
-			return null;
-		}	
-	}
-
-	/**
-	 * @param locator
-	 * @param driver - IOS
-	 * @param timeout
-	 * @description  Waits for objects to load before proceding !!! 
-	 */
-	public static WebElement fluentWait(final By locator, IOSDriver<WebElement> driverIOS, long timeout) {	 
-		try {
-			FluentWait<IOSDriver> wait = new FluentWait<IOSDriver>(driverIOS)
-					.withTimeout(timeout, TimeUnit.SECONDS)
-					.pollingEvery(250, TimeUnit.MILLISECONDS)
-					.ignoring(Exception.class)
-					.ignoring(NoSuchElementException.class);
-
-			WebElement webelement = wait.until(new Function<IOSDriver, WebElement>() {
-				public WebElement apply(IOSDriver driverIOS) {
-					return driverIOS.findElement(locator);
-				}
-			});
-			return  webelement;
-		} catch (Exception e) {
-			return null;
-		}	
-	}
-
-
-	public WebDriver driverObj(ITestContext context)
+	public AppiumDriver<?> driverObj(ITestContext context)
 			throws Exception {
 		testParams = context.getCurrentXmlTest().getAllParameters();		
 		DesiredCapabilities capabilities = new DesiredCapabilities();
@@ -381,37 +328,31 @@ public  class BaseDriver implements WebDriver {
 		boolean waitForDevice = true;
 		int retries = 3;
 		int retryIntervalSec = 1;
-
-		if (testParams.get("driverType").equals("IOS")) {
-			do {
-				try {								  
-					driverIOS = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
-					if (!(driverIOS == null)) {
-						waitForDevice = false;
-					}
-				} catch (Exception e) {
-					retries--;
-					System.out.println("\n\nDevice in use....reconnecting again....: " + capabilities.toString() + "\n Retries Left: " + retries);
-					sleep(retryIntervalSec * 1000);
-					if(retries < 0) {
-						waitForDevice = false;
-					}
+		driverType = testParams.get("driverType");
+		do {
+			try {		
+				if (driverType.equals("IOS")) {
+					driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
+				}else{
+					driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
+				}					
+				if (!(driver == null)) {
+					waitForDevice = false;
 				}
-			} while(waitForDevice); 
-			driverIOS.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-			driverIOS.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
-			driverIOS.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
-			driverIOS.context("NATIVE_APP");
-			driver = driverIOS;			
-		}else{
-			driverAndroid = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
-			driverAndroid.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-			driverAndroid.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
-			driverAndroid.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
-			driverAndroid.context("NATIVE_APP");
-			driver = driverAndroid;			
-		}		
-		return driver;		
+			} catch (Exception e) {
+				retries--;
+				System.out.println("\n\nDevice in use....reconnecting again....: " + capabilities.toString() + "\n Retries Left: " + retries);
+				sleep(retryIntervalSec * 1000);
+				if(retries < 0) {
+					waitForDevice = false;
+				}
+			}
+		} while(waitForDevice); 
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
+		driver.context("NATIVE_APP");
+		return driver;	
 	}
 
 
@@ -425,47 +366,22 @@ public  class BaseDriver implements WebDriver {
 		}
 	}	
 
-	public void tearDown() {
-		try{
-			if(!(driver == null)){
-				driver.close();
-				BaseDriver.downloadReport(remDriver, "pdf", "C:\\temp\\report.pdf");
-			}else{			
-				String reportURL = (String)(driverAndroid.getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
-				System.out.println(reportURL);
-				Runtime.getRuntime().exec(new String[] { "Chrome", reportURL });		
-				if(!(driverAndroid == null)){
-					driverAndroid.close();			
-					BaseDriver.downloadReport(driverAndroid, "pdf", "C:\\temp\\report");
-				}
-				if(!(driverIOS == null)){
-					driverIOS.close();
-					BaseDriver.downloadReport(driverIOS, "pdf", "C:\\temp\\report");
-				}
-			}
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
+	public void tearDown() throws IOException {
+		String reportURL = (String)(driver.getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
+		System.out.println(reportURL);
+
 		if(!(driver == null)){
+			driver.close();			
+			BaseDriver.downloadReport(driver, "pdf", "C:\\temp\\report");
 			driver.quit();
 		}
-		if(!(driverAndroid == null)){
-			driverAndroid.quit();
-		}
-		if(!(driverIOS == null)){
-			driverIOS.quit();
-		}
+		Desktop desktop = Desktop.getDesktop();
+		desktop.browse(URI.create(reportURL));
 	}
 
 	public void init(int implicitWaitTime){
 		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-		implicitWait(implicitWaitTime);
-		try {
-			launchApp();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		implicitWait(implicitWaitTime);		
 	}
 
 	public void implicitWait(int time) {
@@ -479,10 +395,10 @@ public  class BaseDriver implements WebDriver {
 		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);		
 	}
 
-	public void closeApp(Map<String, Object> params){
-		params.put("name", appName);		
-		((JavascriptExecutor) driver).executeScript("mobile:application:close", params);		
-		params.clear();	
+	public void closeApp(){
+		Map<String, Object> closeApp = new HashMap<>();	
+		closeApp.put("name", appName);		
+		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);
 	}
 
 	public void handlePopups(){
@@ -491,82 +407,5 @@ public  class BaseDriver implements WebDriver {
 		.clickOnPopUpIfFound();	
 	}
 
-	@Override
-	public void close() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public WebElement findElement(By arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<WebElement> findElements(By arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void get(String arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String getCurrentUrl() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getPageSource() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getTitle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getWindowHandle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<String> getWindowHandles() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Options manage() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Navigation navigate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void quit() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TargetLocator switchTo() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }
