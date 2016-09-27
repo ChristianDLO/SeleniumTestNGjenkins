@@ -18,8 +18,10 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.concurrent.TimeUnit;
@@ -39,21 +41,23 @@ import org.testng.ITestContext;
 import com.google.common.base.Function;
 import com.perfectomobile.selenium.util.EclipseConnector;
 
+import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 
-public class PerfectoLabUtils {
+public  class BaseDriver implements WebDriver {
 
 	private static final String HTTPS = "https://";
 	private static final String MEDIA_REPOSITORY = "/services/repositories/media/";
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
-	public WebDriver driver;
+	public WebDriver driver = null;
 	public RemoteWebDriver remDriver;
 	public IOSDriver<WebElement> driverIOS;
 	public AndroidDriver<WebElement> driverAndroid;
-	protected Map<String, Object> params = new HashMap<>();
+	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
+	public String appName;
 	@XmlTransient public Properties property;
 
 	/**
@@ -255,6 +259,31 @@ public class PerfectoLabUtils {
 
 	/**
 	 * @param locator
+	 * @param driver 
+	 * @param timeout
+	 * @description  Waits for objects to load before proceding !!! 
+	 */
+	public static WebElement fluentWait(final By locator, BaseDriver driver, long timeout) {	 
+		try {
+			FluentWait<BaseDriver> wait = new FluentWait<BaseDriver>(driver)
+					.withTimeout(timeout, TimeUnit.SECONDS)
+					.pollingEvery(250, TimeUnit.MILLISECONDS)
+					.ignoring(Exception.class)
+					.ignoring(NoSuchElementException.class);
+
+			WebElement webelement = wait.until(new Function<BaseDriver, WebElement>() {
+				public WebElement apply(BaseDriver driver) {
+					return driver.findElement(locator);
+				}
+			});
+			return  webelement;
+		} catch (Exception e) {
+			return null;
+		}	
+	}
+
+	/**
+	 * @param locator
 	 * @param driver - Android
 	 * @param timeout
 	 * @description  Waits for objects to load before proceding !!! 
@@ -305,10 +334,11 @@ public class PerfectoLabUtils {
 
 
 	public WebDriver driverObj(ITestContext context)
-			throws IOException, UnsupportedEncodingException, MalformedURLException {
-		testParams = context.getCurrentXmlTest().getAllParameters();
+			throws Exception {
+		testParams = context.getCurrentXmlTest().getAllParameters();		
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		property = (Properties) System.getProperties().clone();
+		appName = testParams.get("perfect.app");
 		capabilities.setCapability("user", testParams.get("perfecto.username"));
 		capabilities.setCapability("password", property.getProperty("perfecto.password"));
 		if(!testParams.get("deviceName").isEmpty()){
@@ -372,17 +402,16 @@ public class PerfectoLabUtils {
 			driverIOS.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
 			driverIOS.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
 			driverIOS.context("NATIVE_APP");
-			driver = driverIOS;
-			return driver;
+			driver = driverIOS;			
 		}else{
 			driverAndroid = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 			driverAndroid.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 			driverAndroid.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
 			driverAndroid.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
 			driverAndroid.context("NATIVE_APP");
-			driver = driverAndroid;
-			return driver;
-		}
+			driver = driverAndroid;			
+		}		
+		return driver;		
 	}
 
 
@@ -398,31 +427,22 @@ public class PerfectoLabUtils {
 
 	public void tearDown() {
 		try{
-			// Close the browser
 			if(!(driver == null)){
 				driver.close();
-				PerfectoLabUtils.downloadReport(remDriver, "pdf", "C:\\temp\\report.pdf");
-			}
-			if(!(driverAndroid == null)){
-				params.clear();			
-				params.put("name", testParams.get("perfecto.app"));
-				try{
-				driverAndroid.executeScript("mobile:application:clean", params);
-				
-				params.clear();
-				driverAndroid.executeScript("mobile:monitor:stop", params);
-				}catch(Exception e){}
+				BaseDriver.downloadReport(remDriver, "pdf", "C:\\temp\\report.pdf");
+			}else{			
 				String reportURL = (String)(driverAndroid.getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
 				System.out.println(reportURL);
-
-				driverAndroid.close();			
-				PerfectoLabUtils.downloadReport(driverAndroid, "pdf", "C:\\temp\\report.pdf");
+				Runtime.getRuntime().exec(new String[] { "Chrome", reportURL });		
+				if(!(driverAndroid == null)){
+					driverAndroid.close();			
+					BaseDriver.downloadReport(driverAndroid, "pdf", "C:\\temp\\report");
+				}
+				if(!(driverIOS == null)){
+					driverIOS.close();
+					BaseDriver.downloadReport(driverIOS, "pdf", "C:\\temp\\report");
+				}
 			}
-			if(!(driverIOS == null)){
-				driverIOS.close();
-				PerfectoLabUtils.downloadReport(driverIOS, "pdf", "C:\\temp\\report.pdf");
-			}
-
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -438,32 +458,115 @@ public class PerfectoLabUtils {
 		}
 	}
 
-	public void init(){
+	public void init(int implicitWaitTime){
 		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+		implicitWait(implicitWaitTime);
+		try {
+			launchApp();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void implicitWait(int time) {
+		driver.manage().timeouts().implicitlyWait(time, TimeUnit.SECONDS);
 	}
 
 
-	public void launchApp(Map<String, Object> params) throws InterruptedException{
-		params.put("name", testParams.get("perfecto.app"));
-		try{
-			((JavascriptExecutor) driver).executeScript("mobile:application:close", params);
-		}catch(Exception e){}		
-		((JavascriptExecutor) driver).executeScript("mobile:application:open", params);
-		Thread.sleep(3000);
-		params.clear();	
+	public void launchApp() throws InterruptedException{
+		Map<String, Object> app = new HashMap<>();	
+		app.put("name", appName);
+		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);		
 	}
 
 	public void closeApp(Map<String, Object> params){
-		params.put("name", testParams.get("perfecto.app"));		
+		params.put("name", appName);		
 		((JavascriptExecutor) driver).executeScript("mobile:application:close", params);		
 		params.clear();	
 	}
 
 	public void handlePopups(){
 		new PopUpUtils((RemoteWebDriver)driver).addNativePopupBtns(
-				By.xpath("//*[@text='Accept & continue']"))
+				By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]"))
 		.clickOnPopUpIfFound();	
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public WebElement findElement(By arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<WebElement> findElements(By arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void get(String arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getCurrentUrl() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getPageSource() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTitle() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getWindowHandle() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<String> getWindowHandles() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Options manage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Navigation navigate() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void quit() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public TargetLocator switchTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

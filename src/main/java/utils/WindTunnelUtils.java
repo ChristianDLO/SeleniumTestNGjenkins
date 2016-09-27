@@ -2,6 +2,8 @@ package utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.IOException;
@@ -68,11 +70,11 @@ public final class WindTunnelUtils {
      * Example:
      * pointOfInterest(driver, "Login Successful", WindTunnelUtils.SUCCESS);
      */
-    public static String pointOfInterest(RemoteWebDriver driver, String name, String status) {
+    public static String pointOfInterest(BaseDriver driver, String name, String status) {
         Map<String, Object> params = new HashMap<String, Object>(4);
         params.put(POI_DESCRIPTION, name);
         params.put(POI_STATUS, status);
-        String responseStatus = (String) driver.executeScript(MOBILE_STATUS_EVENT_COMMAND, params);
+        String responseStatus = (String) ((JavascriptExecutor) driver).executeScript(MOBILE_STATUS_EVENT_COMMAND, params);
         return responseStatus;
     }
 
@@ -128,7 +130,7 @@ public final class WindTunnelUtils {
         }
         String persona = createWindTunnelPersona(properties, device, settings);
         String repositoryKey = repositoryFolder + "/" + properties.getName() + ".json";
-        PerfectoLabUtils.uploadMedia(host, user, password, persona.getBytes(), repositoryKey);
+        BaseDriver.uploadMedia(host, user, password, persona.getBytes(), repositoryKey);
         return repositoryKey;
     }
 
