@@ -6,6 +6,7 @@ import org.testng.annotations.AfterClass;
 
 import java.io.IOException;
 
+import org.openqa.selenium.By;
 import org.testng.ITestContext;
 import flightApp.pages.*;
 import utils.*;
@@ -14,15 +15,24 @@ public class Verify_Login extends BaseDriver{
 
 	@Test	
 	public void FlightLogin() throws Exception {
-		init(10);
-		launchApp();
-//		handlePopups();		
 		LoginPage login = new LoginPage(this.driver);
+		launchApp();		
 		login.verifyPageLoad();
 		implicitWait(5);
-		login.enterUserName("test");
+		login.enterUserName("genesist");
 		login.enterPassword(this.property.getProperty("perfecto.password"));
-		login.clickLogin();
+		login.enterLastName("Gnanadhas Isaac");
+		login.clickSendorDone(driverType);	
+		login.clickLogin(driverType);
+		HomePage home = new HomePage(this.driver);
+		home.verifyItem(home.lblRecentActivity);
+		home.verifyItem(home.lblSkymiles);
+		home.verifyItem(home.lblMyTrips);
+		home.verifyItem(home.lblProfile);
+		home.clickMore();
+		home.clickLogout();
+		
+		login.verifyPageLoad();
 		closeApp();
 	}
 

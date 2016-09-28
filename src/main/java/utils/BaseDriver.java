@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
@@ -51,9 +49,6 @@ public  class BaseDriver {
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
 	public AppiumDriver<?> driver = null;
-	public RemoteWebDriver remDriver;
-	/*	public static IOSDriver<WebElement> driverIOS;
-	public static AndroidDriver<WebElement> driverAndroid;*/
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
 	public String appName;
@@ -348,9 +343,9 @@ public  class BaseDriver {
 				}
 			}
 		} while(waitForDevice); 
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-		driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
-		driver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
+		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
 		driver.context("NATIVE_APP");
 		return driver;	
 	}
@@ -400,12 +395,4 @@ public  class BaseDriver {
 		closeApp.put("name", appName);		
 		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);
 	}
-
-	public void handlePopups(){
-		new PopUpUtils((RemoteWebDriver)driver).addNativePopupBtns(
-				By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]"))
-		.clickOnPopUpIfFound();	
-	}
-
-
 }
