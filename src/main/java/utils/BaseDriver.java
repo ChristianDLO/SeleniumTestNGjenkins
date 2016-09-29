@@ -294,6 +294,10 @@ public  class BaseDriver {
 		capabilities.setCapability("bundleId", testParams.get("package"));
 		capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA);
 		capabilities.setCapability("automationName", "Appium");
+		capabilities.setCapability("noReset", false);
+		capabilities.setCapability("takesScreenshot", true);
+		capabilities.setCapability("outputReport", true);
+		capabilities.setCapability("outputVideo", true);
 		if (testParams.get("RunMode").equals("Debug")) {
 			setExecutionIdCapability(capabilities, testParams.get("perfecto.url"));
 		} 		
@@ -390,9 +394,12 @@ public  class BaseDriver {
 		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);		
 	}
 
-	public void closeApp(){
+	public void closeApp(){		
+		try{
 		Map<String, Object> closeApp = new HashMap<>();	
-		closeApp.put("name", appName);		
+		closeApp.put("name", appName);	
+		((JavascriptExecutor) driver).executeScript("mobile:application:clean", closeApp);
 		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);
+		}catch(Exception e){}
 	}
 }

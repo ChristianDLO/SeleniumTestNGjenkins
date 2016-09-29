@@ -20,26 +20,27 @@ public class LoginPage {
 	}
 
 	// Page elements
-	private By btnLogin = By.xpath("//*[@text=\"Log In\"]");
-	private By btnDone = By.xpath("//*[@text=\"DONE\"]");
+	private By btnLogin = By.xpath("//*[@text=\"Log In\" or @label=\"Log In\"]");
+	private By btnDone = By.xpath("//*[@label=\"DONE\"]");
 	private By txtUserName   = By.xpath("//*[@text=\"SkyMiles® Number or Username\" or @value=\"SkyMiles® Number or Username\"]");
 	private By txtPassword   = By.xpath("//*[@password=\"true\" or @value=\"Password\"]");
 	private By txtLastName   = By.xpath("//*[@value=\"Last name\" or @text=\"Last Name\"]");
+	private By chkNew        = By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]");
 
-	public void handlePopups(){
-		new PopUpUtils(driver).addNativePopupBtns(
-				By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]"),
-				By.xpath("//*[@label=\"DONE\"]"),
-				By.xpath("//*[@label=\"No, thanks\"]"))
-		.clickOnPopUpIfFound();	
-	}
 
 	public void verifyPageLoad() {
-		if(BaseDriver.fluentWait(btnLogin, (AppiumDriver<WebElement>) driver, 60).isDisplayed()){	
-			Assert.assertTrue(!driver.findElement(btnLogin).getText().isEmpty(), "Page loaded. Login is displayed");	
-			WindTunnelUtils.pointOfInterest(driver, "Page loaded. Login is displayed", WindTunnelUtils.SUCCESS);
-		}else{
-			WindTunnelUtils.pointOfInterest(driver, "Page not loaded. Login is not displayed", WindTunnelUtils.FAILURE);
+		try{
+			if(BaseDriver.driverType.equalsIgnoreCase("Android")){				
+				if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){						
+					driver.findElement(chkNew).click();
+				}
+			}
+			if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
+				Assert.assertTrue(!driver.findElement(txtUserName).getText().isEmpty(), "Page loaded. Login is displayed");	
+				WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
+			}	
+		}catch(Exception e){
+			WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
 		}
 	}
 
@@ -61,15 +62,16 @@ public class LoginPage {
 		lastName.sendKeys(name);
 	}
 
-	public void clickLogin(String type) {
-		if(type.equalsIgnoreCase("ios")){			
+	public void clickLogin() {
+		if(BaseDriver.driverType.equalsIgnoreCase("ios")){			
 			WebElement login = driver.findElement(btnLogin);		
 			login.click();
 		}
 	}
 
-	public void clickSendorDone(String type){
-		if(type.equalsIgnoreCase("android")){
+	public void clickSendorDone() throws InterruptedException{
+		if(BaseDriver.driverType.equalsIgnoreCase("android")){
+			Thread.sleep(1000);
 			Map<String, Object> send = new HashMap<>();
 			send.put("label", "Send");
 			send.put("timeout", "30");

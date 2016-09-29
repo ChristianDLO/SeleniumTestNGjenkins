@@ -16,29 +16,35 @@ public class HomePage {
 	}
 
 	// Page elements
-	public By lblRecentActivity = By.xpath("//*[@label=\"Recent Activity\"or @text=\"Recent Activity\"]");
-	public By lblSkymiles = By.xpath("//*[@label=\"SKYMILES\"or @text=\"SKYMILES\"]");
-	public By lblMyTrips= By.xpath("//*[@label=\"MY TRIPS\"or @text=\"MY TRIPS\"]");
-	public By lblProfile = By.xpath("//*[@label=\"PROFILE\"or @text=\"PROFILE\"]");
+	public By lblRecentActivity = By.xpath("//*[@label=\"Recent Activity\" or @text=\"Recent Activity\"]");
+	public By lblSkymiles = By.xpath("//*[@label=\"SKYMILES\"or @text=\"SkyMiles\"]");
+	public By lblMyTrips= By.xpath("//*[@label=\"MY TRIPS\"or @text=\"My Trips\"]");
+	public By lblProfile = By.xpath("//*[@label=\"PROFILE\"or @text=\"Profile\"]");
 	private By btnNoThanks = By.xpath("//*[@label=\"No, thanks\"or @text=\"No, thanks\"]");
-	private By btnMore = By.xpath("//*[@content-desc=\"More options\"]");
-	private By btnLogout = By.xpath("//*[@text=\"Log Out\"]");
+	private By btnMore = By.xpath("//*[@content-desc=\"More options\" or @label=\"More\"]");
+	private By btnLogout = By.xpath("//*[@text=\"Log Out\" or @label=\"LOG OUT\"]");
 
 
 	public void verifyItem(By by) {		
-		if(BaseDriver.fluentWait(by, (AppiumDriver<WebElement>) driver, 10).isDisplayed()){	
-			Assert.assertTrue(!driver.findElement(by).getText().isEmpty(),  by.toString() + " is displayed");	
+		if(driver.findElement(by).isDisplayed()){	
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is displayed", WindTunnelUtils.SUCCESS);
 		}else{
-			clickNoThanks();
-			verifyItem(by);
+			if(clickNoThanks()){
+				verifyItem(by);
+			}else{
+				WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is not displayed", WindTunnelUtils.FAILURE);
+
+			}
 		}
 	}
 
-	protected void clickNoThanks() {		
+	protected boolean clickNoThanks() {		
 		if(BaseDriver.fluentWait(btnNoThanks, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){	
 			WebElement thanks = driver.findElement(btnNoThanks);		
 			thanks.click();	
+			return true;
+		}else{
+			return false;
 		}
 	}
 

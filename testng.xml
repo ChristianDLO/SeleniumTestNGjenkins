@@ -4,8 +4,8 @@
 <suite name="Suite" parallel="tests" thread-count="1">
 	<parameter name="perfecto.url" value="demo.perfectomobile.com" />
 	<parameter name="perfecto.username" value="genesist@perfectomobile.com" />
-	<!-- <parameter name="perfecto.password" value="" />  --> <!--  Pass it from VM arguments -->  
-	<parameter name="RunMode" value="Debug" /> <!-- Debug -->
+	<!-- <parameter name="perfecto.password" value="" /> --> <!-- Pass it from VM arguments -->
+	<parameter name="RunMode" value="Auto" /> <!-- Debug -->
 	<parameter name="proxy.url" value="" />
 	<parameter name="proxy.port" value="" />
 	<parameter name="proxy.user" value="" />
@@ -19,6 +19,19 @@
 		<parameter name="deviceName" value="30E9D3E3" />
 		<parameter name="driverType" value="Android" />
 		<parameter name="package" value="com.delta.mobile.android" />
+		<parameter name="perfect.app" value="Fly Delta" />
+		<classes>
+			<class name="tests.Verify_Login" />
+		</classes>
+	</test>
+	<test name="IOS Verification">
+		<parameter name="platformName" value="iOS" />
+		<parameter name="platformVersion" value="[45].*" />
+		<parameter name="manufacturer" value="Apple" />
+		<parameter name="model" value="iPhone-6" />
+		<parameter name="deviceName" value="41EEF156EA10EDAB41632651F7AD2A4C4CB502ED" />
+		<parameter name="driverType" value="iOS" />
+		<parameter name="package" value="com.delta.iphone.ver1" />
 		<parameter name="perfect.app" value="Fly Delta" />
 		<classes>
 			<class name="tests.Verify_Login" />
