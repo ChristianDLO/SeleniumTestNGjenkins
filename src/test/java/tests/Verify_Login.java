@@ -24,7 +24,7 @@ public class Verify_Login extends BaseDriver{
 		login.enterLastName("Gnanadhas Isaac");
 		login.clickSendorDone();	
 		login.clickLogin();
-		implicitWait(100);
+		implicitWait(90);
 		HomePage home = new HomePage(this.driver);
 		home.verifyItem(home.lblRecentActivity);
 		implicitWait(5);
