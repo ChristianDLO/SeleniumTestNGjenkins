@@ -14,8 +14,13 @@ public class Verify_Login extends BaseDriver{
 
 	@Test	
 	public void FlightLogin() throws Exception {
-		LoginPage login = new LoginPage(this.driver);				
+		LoginPage login = new LoginPage(this.driver);	
+		HomePage home = new HomePage(this.driver);		
 		implicitWait(60);
+		if(login.verifyPageLoad() == false){ // verifyPageLoad returns false when app is logged in
+			home.clickMore();
+			home.clickLogout();			
+		}
 		login.verifyPageLoad();
 		implicitWait(5);
 		login.enterUserName("genesist");
@@ -25,7 +30,6 @@ public class Verify_Login extends BaseDriver{
 		login.clickSendorDone();	
 		login.clickLogin();
 		implicitWait(90);
-		HomePage home = new HomePage(this.driver);
 		home.verifyItem(home.lblRecentActivity);
 		implicitWait(5);
 		home.verifyItem(home.lblSkymiles);

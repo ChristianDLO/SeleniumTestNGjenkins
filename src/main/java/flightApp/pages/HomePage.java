@@ -21,7 +21,7 @@ public class HomePage {
 	public By lblMyTrips= By.xpath("//*[@label=\"MY TRIPS\"or @text=\"My Trips\"]");
 	public By lblProfile = By.xpath("//*[@label=\"PROFILE\"or @text=\"Profile\"]");
 	private By btnNoThanks = By.xpath("//*[@label=\"No, thanks\"or @text=\"No, thanks\"]");
-	private By btnMore = By.xpath("//*[@content-desc=\"More options\" or @label=\"More\"]");
+	public By btnMore = By.xpath("//*[@content-desc=\"More options\" or @label=\"More\"]");
 	private By btnLogout = By.xpath("//*[@text=\"Log Out\" or @label=\"LOG OUT\"]");
 
 
