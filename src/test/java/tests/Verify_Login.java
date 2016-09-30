@@ -14,10 +14,8 @@ public class Verify_Login extends BaseDriver{
 
 	@Test	
 	public void FlightLogin() throws Exception {
-		closeApp();
-		LoginPage login = new LoginPage(this.driver);
-		launchApp();		
-		implicitWait(30);
+		LoginPage login = new LoginPage(this.driver);				
+		implicitWait(60);
 		login.verifyPageLoad();
 		implicitWait(5);
 		login.enterUserName("genesist");
@@ -26,7 +24,7 @@ public class Verify_Login extends BaseDriver{
 		login.enterLastName("Gnanadhas Isaac");
 		login.clickSendorDone();	
 		login.clickLogin();
-		implicitWait(60);
+		implicitWait(100);
 		HomePage home = new HomePage(this.driver);
 		home.verifyItem(home.lblRecentActivity);
 		implicitWait(5);

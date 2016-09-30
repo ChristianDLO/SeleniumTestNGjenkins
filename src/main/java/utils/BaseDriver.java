@@ -291,7 +291,6 @@ public  class BaseDriver {
 			capabilities.setCapability("manufacturer", testParams.get("manufacturer"));
 			capabilities.setCapability("model", testParams.get("model"));
 		}
-		capabilities.setCapability("bundleId", testParams.get("package"));
 		capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA);
 		capabilities.setCapability("automationName", "Appium");
 		capabilities.setCapability("noReset", false);
@@ -331,8 +330,10 @@ public  class BaseDriver {
 		do {
 			try {		
 				if (driverType.equals("IOS")) {
+					capabilities.setCapability("bundleId", testParams.get("package"));
 					driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
 				}else{
+					capabilities.setCapability("appPackage", testParams.get("package"));
 					driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 				}					
 				if (!(driver == null)) {
@@ -395,11 +396,15 @@ public  class BaseDriver {
 	}
 
 	public void closeApp(){		
-		try{
+		cleanApp();
 		Map<String, Object> closeApp = new HashMap<>();	
-		closeApp.put("name", appName);	
-		((JavascriptExecutor) driver).executeScript("mobile:application:clean", closeApp);
-		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);
-		}catch(Exception e){}
+		closeApp.put("name", appName);		
+		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);		
+	}
+	
+	public void cleanApp(){		
+		Map<String, Object> clean = new HashMap<>();	
+		clean.put("name", appName);	
+		((JavascriptExecutor) driver).executeScript("mobile:application:clean", clean);
 	}
 }

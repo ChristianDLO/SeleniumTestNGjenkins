@@ -28,19 +28,24 @@ public class LoginPage {
 	private By chkNew        = By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]");
 
 
-	public void verifyPageLoad() {
+	public void verifyPageLoad() {		
 		try{
-			if(BaseDriver.driverType.equalsIgnoreCase("Android")){				
-				if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){						
-					driver.findElement(chkNew).click();
-				}
-			}
 			if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
 				Assert.assertTrue(!driver.findElement(txtUserName).getText().isEmpty(), "Page loaded. Login is displayed");	
 				WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
-			}	
+			}
 		}catch(Exception e){
-			WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
+			if(BaseDriver.driverType.equalsIgnoreCase("Android")){				
+				if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){						
+					handlePopups();
+					verifyPageLoad();
+				}else{
+					WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
+				}
+			}else{
+				WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
+			}
+
 		}
 	}
 
@@ -80,5 +85,9 @@ public class LoginPage {
 			WebElement done = driver.findElement(btnDone);		
 			done.click();
 		}
+	}
+
+	public void handlePopups(){
+		new PopUpUtils(driver).addNativePopupBtns(chkNew).clickOnPopUpIfFound();	
 	}
 }
