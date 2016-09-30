@@ -6,6 +6,7 @@ import org.testng.Assert;
 
 import io.appium.java_client.AppiumDriver;
 import utils.BaseDriver;
+import utils.PopUpUtils;
 import utils.WindTunnelUtils;
 
 public class HomePage {
@@ -28,25 +29,15 @@ public class HomePage {
 	public void verifyItem(By by) {		
 		if(driver.findElement(by).isDisplayed()){	
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is displayed", WindTunnelUtils.SUCCESS);
-		}else{
-			if(clickNoThanks()){
-				verifyItem(by);
-			}else{
-				WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is not displayed", WindTunnelUtils.FAILURE);
-
-			}
+		}else{			
+			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is not displayed", WindTunnelUtils.FAILURE);
 		}
 	}
 
-	protected boolean clickNoThanks() {		
-		if(BaseDriver.fluentWait(btnNoThanks, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){	
-			WebElement thanks = driver.findElement(btnNoThanks);		
-			thanks.click();	
-			return true;
-		}else{
-			return false;
-		}
+	public void handlePopups(){
+		new PopUpUtils(driver).addNativePopupBtns(btnNoThanks).clickOnPopUpIfFound();	
 	}
+
 
 	public void clickMore() {		
 		WebElement more = driver.findElement(btnMore);		

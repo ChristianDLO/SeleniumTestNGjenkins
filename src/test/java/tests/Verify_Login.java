@@ -18,6 +18,7 @@ public class Verify_Login extends BaseDriver{
 		HomePage home = new HomePage(this.driver);		
 		implicitWait(60);
 		if(login.verifyPageLoad() == false){ // verifyPageLoad returns false when app is logged in
+			home.handlePopups();
 			home.clickMore();
 			home.clickLogout();			
 		}
@@ -32,6 +33,7 @@ public class Verify_Login extends BaseDriver{
 		implicitWait(90);
 		home.verifyItem(home.lblRecentActivity);
 		implicitWait(5);
+		home.handlePopups();
 		home.verifyItem(home.lblSkymiles);
 		home.verifyItem(home.lblMyTrips);
 		home.verifyItem(home.lblProfile);
