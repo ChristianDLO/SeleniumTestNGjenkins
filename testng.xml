@@ -5,7 +5,7 @@
 	<parameter name="perfecto.url" value="demo.perfectomobile.com" />
 	<parameter name="perfecto.username" value="genesist@perfectomobile.com" />
 	<!-- <parameter name="perfecto.password" value="" /> --> <!-- Pass it from VM arguments -->
-	<parameter name="RunMode" value="Auto" /> <!-- Debug -->
+	<parameter name="RunMode" value="Debug" /> <!-- Debug -->
 	<parameter name="proxy.url" value="" />
 	<parameter name="proxy.port" value="" />
 	<parameter name="proxy.user" value="" />
@@ -24,7 +24,7 @@
 			<class name="tests.Verify_Login" />
 		</classes>
 	</test>
-	<test name="IOS Verification">
+	<!-- <test name="IOS Verification">
 		<parameter name="platformName" value="iOS" />
 		<parameter name="platformVersion" value="[45].*" />
 		<parameter name="manufacturer" value="Apple" />
@@ -36,5 +36,5 @@
 		<classes>
 			<class name="tests.Verify_Login" />
 		</classes>
-	</test>
+	</test> -->
 </suite> 

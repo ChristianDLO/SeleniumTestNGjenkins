@@ -27,7 +27,7 @@ public class HomePage {
 
 
 	public void verifyItem(By by) {		
-		if(driver.findElement(by).isDisplayed()){	
+		if(BaseDriver.fluentWait(by, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is displayed", WindTunnelUtils.SUCCESS);
 		}else{			
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is not displayed", WindTunnelUtils.FAILURE);
@@ -35,7 +35,11 @@ public class HomePage {
 	}
 
 	public void handlePopups(){
-		new PopUpUtils(driver).addNativePopupBtns(btnNoThanks).clickOnPopUpIfFound();	
+		try{
+			if(BaseDriver.fluentWait(btnNoThanks, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){			
+				driver.findElement(btnNoThanks).click();
+			}
+		}catch(Exception e){}
 	}
 
 

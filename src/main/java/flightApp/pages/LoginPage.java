@@ -28,29 +28,17 @@ public class LoginPage {
 	private By chkNew        = By.xpath("//*[@resource-id=\"com.delta.mobile.android:id/action_done\"]");
 
 
-	public boolean verifyPageLoad() {		
-		try{
-			if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
-				Assert.assertTrue(!driver.findElement(txtUserName).getText().isEmpty(), "Page loaded. Login is displayed");	
-				WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
-			}
-		}catch(Exception e){
-			if(BaseDriver.driverType.equalsIgnoreCase("Android")){	// Closes the What's new popup which is found on android devices alone.
-				HomePage home = new HomePage(driver);
-				if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){						
-					handlePopups();
-					verifyPageLoad();
-				}else if(BaseDriver.fluentWait(home.btnMore, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){ // returns false when logged in
-					return false;
-				}else{
-					WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
-				}
-			}else{
-				WindTunnelUtils.pointOfInterest(driver, "Page not loaded. User field is not displayed", WindTunnelUtils.FAILURE);
+	public void verifyPageLoad() {		
+		if(BaseDriver.driverType.equalsIgnoreCase("Android")){	// Closes the What's new popup which is found on android devices alone.
+			if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){				
+				handlePopups();			
 			}
 		}
-		return true;
+		if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
+			WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
+		}
 	}
+
 
 	public void enterUserName(String user) {
 		WebElement userName = driver.findElement(txtUserName);		
