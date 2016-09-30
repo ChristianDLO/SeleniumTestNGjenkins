@@ -397,9 +397,7 @@ public  class BaseDriver {
 
 	public void closeApp(){		
 		cleanApp();
-		Map<String, Object> closeApp = new HashMap<>();	
-		closeApp.put("name", appName);		
-		((JavascriptExecutor) driver).executeScript("mobile:application:close", closeApp);		
+		driver.closeApp();
 	}
 	
 	public void cleanApp(){		

@@ -42,7 +42,6 @@ public class Verify_Login extends BaseDriver{
 
 	@AfterClass
 	public void afterClass() throws IOException {
-		cleanApp();
 		closeApp();
 		tearDown();
 	}
