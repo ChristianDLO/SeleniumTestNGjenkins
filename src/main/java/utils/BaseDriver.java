@@ -329,7 +329,7 @@ public  class BaseDriver {
 		driverType = testParams.get("driverType");
 		do {
 			try {		
-				if (driverType.equals("IOS")) {
+				if (driverType.equalsIgnoreCase("IOS")) {
 					capabilities.setCapability("bundleId", testParams.get("package"));
 					driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
 				}else{
