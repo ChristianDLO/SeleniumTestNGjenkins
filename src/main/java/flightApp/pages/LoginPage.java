@@ -43,19 +43,19 @@ public class LoginPage {
 
 
 	public void enterUserName(String user) {
-		WebElement userName = driver.findElement(txtUserName);		
+		WebElement userName = driver.findElement(txtUserName);	
 		userName.click();
 		userName.sendKeys(user);
 	}
 
 	public void enterPassword(String pass) {
-		WebElement password = driver.findElement(txtPassword);		
+		WebElement password = driver.findElement(txtPassword);
 		password.click();
 		password.sendKeys(pass);
 	}
 
 	public void enterLastName(String name) {
-		WebElement lastName = driver.findElement(txtLastName);		
+		WebElement lastName = driver.findElement(txtLastName);
 		lastName.click();
 		lastName.sendKeys(name);
 	}
