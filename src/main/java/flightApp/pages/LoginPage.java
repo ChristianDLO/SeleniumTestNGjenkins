@@ -75,8 +75,10 @@ public class LoginPage {
 			send.put("timeout", "30");
 			driver.executeScript("mobile:button-text:click", send);
 		}else{
-			WebElement done = driver.findElement(btnDone);		
-			done.click();
+			if(driver.findElement(btnDone).isDisplayed()){
+				WebElement done = driver.findElement(btnDone);		
+				done.click();
+			}
 		}
 	}
 
