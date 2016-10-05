@@ -36,6 +36,8 @@ public class LoginPage {
 		}
 		if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
 			WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
+		}else{
+			WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is not displayed", WindTunnelUtils.FAILURE);
 		}
 	}
 

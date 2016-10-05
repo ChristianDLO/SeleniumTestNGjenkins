@@ -158,12 +158,6 @@
 			<artifactId>http-client</artifactId>
 			<version>6.5.0.0</version>
 		</dependency>
-		<!-- <dependency> <groupId>com.perfectomobile</groupId> <artifactId>jcl-over-slf4j</artifactId> 
-			<version>1.7.12</version> </dependency> <dependency> <groupId>org.apache.http</groupId> 
-			<artifactId>httpcore</artifactId> <version>4.4.1</version> </dependency> 
-			<dependency> <groupId>org.apache.http</groupId> <artifactId>httpclient</artifactId> 
-			<version>4.4.1</version> </dependency> <dependency> <groupId>commons-lang</groupId> 
-			<artifactId>commons-lang3</artifactId> <version>3.4</version> </dependency> -->
 		<dependency>
 			<groupId>io.appium</groupId>
 			<artifactId>java-client</artifactId>

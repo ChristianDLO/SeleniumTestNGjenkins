@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Suite" parallel="tests" thread-count="1">
+<suite name="Suite" parallel="tests" thread-count="5">
 	<parameter name="perfecto.url" value="demo.perfectomobile.com" />
 	<parameter name="perfecto.username" value="genesist@perfectomobile.com" />
 	<!-- <parameter name="perfecto.password" value="" /> --> <!-- Pass it from VM arguments -->
@@ -11,7 +11,7 @@
 	<parameter name="proxy.user" value="" />
 	<parameter name="proxy.pass" value="" />
 
-	<test name="Android Verification">
+	<test name="Android Verification" parallel="tests" thread-count="2">
 		<parameter name="platformName" value="Android" />
 		<parameter name="platformVersion" value="[45].*" />
 		<parameter name="manufacturer" value="Samsung" />
@@ -24,7 +24,7 @@
 			<class name="tests.Verify_Login" />
 		</classes>
 	</test>
-	<test name="IOS Verification">
+	<test name="IOS Verification" parallel="tests" thread-count="2">
 		<parameter name="platformName" value="iOS" />
 		<parameter name="platformVersion" value="[45].*" />
 		<parameter name="manufacturer" value="Apple" />
