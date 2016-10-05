@@ -1,6 +1,7 @@
 package flightApp.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
@@ -10,9 +11,9 @@ import utils.PopUpUtils;
 import utils.WindTunnelUtils;
 
 public class HomePage {
-	AppiumDriver<?> driver;
+	WebDriver driver;
 
-	public HomePage(AppiumDriver<?> driver) {
+	public HomePage(WebDriver driver) {
 		this.driver = driver;
 	}
 
@@ -27,7 +28,7 @@ public class HomePage {
 
 
 	public void verifyItem(By by) {		
-		if(BaseDriver.fluentWait(by, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){
+		if(BaseDriver.wait(by, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is displayed", WindTunnelUtils.SUCCESS);
 		}else{			
 			WindTunnelUtils.pointOfInterest(driver,  by.toString() + " is not displayed", WindTunnelUtils.FAILURE);
@@ -36,7 +37,7 @@ public class HomePage {
 
 	public void handlePopups(){
 		try{
-			if(BaseDriver.fluentWait(btnNoThanks, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){			
+			if(BaseDriver.wait(btnNoThanks, (AppiumDriver<WebElement>) driver, 5).isDisplayed()){			
 				driver.findElement(btnNoThanks).click();
 			}
 		}catch(Exception e){}

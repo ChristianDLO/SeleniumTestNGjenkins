@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.Assert;
 
 import io.appium.java_client.AppiumDriver;
@@ -13,9 +15,9 @@ import utils.PopUpUtils;
 import utils.WindTunnelUtils;
 
 public class LoginPage {
-	AppiumDriver<?> driver;
+	WebDriver driver;
 
-	public LoginPage(AppiumDriver<?> driver) {
+	public LoginPage(WebDriver driver) {
 		this.driver = driver;
 	}
 
@@ -29,12 +31,12 @@ public class LoginPage {
 
 
 	public void verifyPageLoad() {		
-		if(BaseDriver.driverType.equalsIgnoreCase("Android")){	// Closes the What's new popup which is found on android devices alone.
-			if(BaseDriver.fluentWait(chkNew, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){				
+		if(BaseDriver.deviceType.equalsIgnoreCase("Android")){	// Closes the What's new popup which is found on android devices alone.
+			if(BaseDriver.wait(chkNew, driver, 30).isDisplayed()){				
 				handlePopups();			
 			}
 		}
-		if(BaseDriver.fluentWait(txtUserName, (AppiumDriver<WebElement>) driver, 30).isDisplayed()){	
+		if(BaseDriver.wait(txtUserName,  driver, 30).isDisplayed()){	
 			WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is displayed", WindTunnelUtils.SUCCESS);
 		}else{
 			WindTunnelUtils.pointOfInterest(driver, "Page loaded. User field is not displayed", WindTunnelUtils.FAILURE);
@@ -61,19 +63,19 @@ public class LoginPage {
 	}
 
 	public void clickLogin() {
-		if(BaseDriver.driverType.equalsIgnoreCase("ios")){			
+		if(BaseDriver.deviceType.equalsIgnoreCase("ios")){			
 			WebElement login = driver.findElement(btnLogin);		
 			login.click();
 		}
 	}
 
 	public void clickSendorDone() throws InterruptedException{
-		if(BaseDriver.driverType.equalsIgnoreCase("android")){
+		if(BaseDriver.deviceType.equalsIgnoreCase("android")){
 			Thread.sleep(1000);
 			Map<String, Object> send = new HashMap<>();
 			send.put("label", "Send");
 			send.put("timeout", "30");
-			driver.executeScript("mobile:button-text:click", send);
+			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
 		}else{
 			if(driver.findElement(btnDone).isDisplayed()){
 				WebElement done = driver.findElement(btnDone);		
@@ -83,6 +85,6 @@ public class LoginPage {
 	}
 
 	public void handlePopups(){
-		new PopUpUtils(driver).addNativePopupBtns(chkNew).clickOnPopUpIfFound();	
+		new PopUpUtils((RemoteWebDriver)driver).addNativePopupBtns(chkNew).clickOnPopUpIfFound();	
 	}
 }

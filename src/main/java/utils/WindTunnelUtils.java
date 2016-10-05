@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appium.java_client.AppiumDriver;
 
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.IOException;
@@ -72,7 +73,7 @@ public final class WindTunnelUtils {
      * Example:
      * pointOfInterest(driver, "Login Successful", WindTunnelUtils.SUCCESS);
      */
-    public static String pointOfInterest(AppiumDriver<?> driver, String name, String status) {
+    public static String pointOfInterest(WebDriver driver, String name, String status) {
         Map<String, Object> params = new HashMap<String, Object>(4);
         params.put(POI_DESCRIPTION, name);
         params.put(POI_STATUS, status);

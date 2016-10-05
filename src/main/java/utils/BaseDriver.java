@@ -28,6 +28,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.*;
@@ -38,6 +39,8 @@ import org.testng.ITestContext;
 
 import com.perfectomobile.selenium.util.EclipseConnector;
 
+import flightApp.pages.HomePage;
+import flightApp.pages.LoginPage;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
@@ -48,11 +51,16 @@ public  class BaseDriver {
 	private static final String MEDIA_REPOSITORY = "/services/repositories/media/";
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
-	public AppiumDriver<?> driver = null;
+	public WebDriver driver = null;
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
+	public static String appDetail;
 	public String appName;
-	public static String driverType;
+	public static String deviceType;
+	public static String perfectoDriver = "";
+	protected LoginPage login = new LoginPage(this.driver);	
+	protected HomePage home = new HomePage(this.driver);	
+	int retries = 3;
 	@XmlTransient public Properties property;
 
 	/**
@@ -254,64 +262,76 @@ public  class BaseDriver {
 
 	/**
 	 * @param locator
+	 * @param driver
 	 * @param timeout
 	 * @description  Waits for objects to load before proceding !!! 
 	 */
-	public static WebElement fluentWait(final By locator, AppiumDriver<WebElement> driver, long timeout) {	 
+	public static WebElement wait(final By locator, WebDriver driver, long timeout) {	 
 
-		Wait<WebDriver> await = new FluentWait<WebDriver> (driver)
-				.withTimeout(timeout, TimeUnit.SECONDS)
-				.pollingEvery(500, TimeUnit.MILLISECONDS)
-				.ignoring(NoSuchElementException.class);
-		try {	
-			await.until(ExpectedConditions.visibilityOf(driver.findElement(locator)));
+		try {
+			driver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);		
 			return driver.findElement(locator);
-		}catch(Exception e){
+		} catch(Exception e) {
 			return null;
 		}
+
 	}
 
 	/**
 	 * @param context 
 	 * @description Creates the driver
 	 */
-	public AppiumDriver<?> driverObj(ITestContext context)
-			throws Exception {
-		testParams = context.getCurrentXmlTest().getAllParameters();		
-		DesiredCapabilities capabilities = new DesiredCapabilities();
+	public WebDriver driverObj(ITestContext context) throws Exception {
+
+		DesiredCapabilities capabilities;
 		property = (Properties) System.getProperties().clone();
+		testParams = context.getCurrentXmlTest().getAllParameters();
+
+		perfectoDriver = testParams.get("perfectoDriver");		
 		appName = testParams.get("perfect.app");
-		capabilities.setCapability("user", testParams.get("perfecto.username"));
-		capabilities.setCapability("password", property.getProperty("perfecto.password"));
-		if(!testParams.get("deviceName").isEmpty()){
+		appDetail = testParams.get("package");
+
+		if (perfectoDriver.equalsIgnoreCase("RemoteWebDriver")) {
+			capabilities = new DesiredCapabilities(appDetail, "", Platform.ANY);
+		} else {
+			capabilities = new DesiredCapabilities();
+			capabilities.setCapability("automationName", "Appium");
+		}
+
+		if (!testParams.get("deviceName").isEmpty()) {
 			capabilities.setCapability("deviceName", testParams.get("deviceName"));
-		}else{
+		} else {
 			capabilities.setCapability("platformName", testParams.get("platformName"));
 			capabilities.setCapability("platformVersion", testParams.get("platformVersion"));
 			capabilities.setCapability("manufacturer", testParams.get("manufacturer"));
 			capabilities.setCapability("model", testParams.get("model"));
 		}
-		capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA);
-		capabilities.setCapability("automationName", "Appium");
+
+		capabilities.setCapability("user", testParams.get("perfecto.username"));
+		capabilities.setCapability("password", property.getProperty("perfecto.password"));
+		//capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA); - optional
 		capabilities.setCapability("noReset", false);
 		capabilities.setCapability("takesScreenshot", true);
 		capabilities.setCapability("outputReport", true);
 		capabilities.setCapability("outputVideo", true);
+
 		if (testParams.get("RunMode").equals("Debug")) {
 			setExecutionIdCapability(capabilities, testParams.get("perfecto.url"));
-		} 		
+		} 	
+
 		String proxyHost=testParams.get("proxy.url");	
 		String proxyPort=testParams.get("proxy.port");
 		final String proxyUser=testParams.get("proxy.user");
 		final String proxyPassword=testParams.get("proxy.pass");
 		String perfectoHost=testParams.get("perfecto.url");
 
-		if(!proxyHost.isEmpty()) {
+		if (!proxyHost.isEmpty()) {
 			System.setProperty("http.proxyHost", proxyHost);
 			System.setProperty("http.proxyPort", proxyPort);
 			System.setProperty("https.proxyHost", proxyHost);
 			System.setProperty("https.proxyPort", proxyPort);
-			if(!proxyUser.isEmpty()) {
+
+			if (!proxyUser.isEmpty()) {
 				System.out.println("\n\n\nProxy user is " + proxyUser);
 				perfectoHost = proxyUser + ":" + URLEncoder.encode(proxyPassword, "UTF-8") + "@" + perfectoHost;
 				Authenticator authenticator = new Authenticator() {
@@ -323,21 +343,27 @@ public  class BaseDriver {
 				Authenticator.setDefault(authenticator);
 			}
 		}
+
 		boolean waitForDevice = true;
-		int retries = 3;
 		int retryIntervalSec = 1;
-		driverType = testParams.get("driverType");
+		deviceType = testParams.get("deviceType");
+
 		do {
 			try {		
-				if (driverType.equalsIgnoreCase("IOS")) {
-					capabilities.setCapability("bundleId", testParams.get("package"));
-					driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
-				}else{
-					capabilities.setCapability("appPackage", testParams.get("package"));
-					driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
-				}					
-				if (!(driver == null)) {
-					waitForDevice = false;
+				if (perfectoDriver.equalsIgnoreCase("RemoteWebDriver")) {
+					driver = new RemoteWebDriver(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
+				} else {
+					if (deviceType.equalsIgnoreCase("IOS")) {
+						capabilities.setCapability("bundleId", appDetail);
+						driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
+					} else {
+						capabilities.setCapability("appPackage", appDetail);
+						driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
+					}	
+
+					if (!(driver == null)) {
+						waitForDevice = false;
+					}
 				}
 			} catch (Exception e) {
 				retries--;
@@ -348,10 +374,15 @@ public  class BaseDriver {
 				}
 			}
 		} while(waitForDevice); 
+
 		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
 		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
 		driver.manage().timeouts().setScriptTimeout(20, TimeUnit.SECONDS);
-		driver.context("NATIVE_APP");
+
+		if (!(perfectoDriver.equalsIgnoreCase("RemoteWebDriver"))) {
+			((AppiumDriver<?>)driver).context("NATIVE_APP");
+		}
+
 		return driver;	
 	}
 
@@ -366,40 +397,16 @@ public  class BaseDriver {
 		}
 	}	
 
-	public void tearDown() throws IOException {
-		String reportURL = (String)(driver.getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
-		System.out.println(reportURL);
 
-		if(!(driver == null)){
-			driver.close();			
-			BaseDriver.downloadReport(driver, "pdf", "C:\\temp\\report");
-			driver.quit();
-		}
-		Desktop desktop = Desktop.getDesktop();
-		desktop.browse(URI.create(reportURL));
-	}
-
-	public void init(int implicitWaitTime){
-		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-		implicitWait(implicitWaitTime);		
-	}
-
-	public void implicitWait(int time) {
-		driver.manage().timeouts().implicitlyWait(time, TimeUnit.SECONDS);
-	}
-
-
+	/**
+	 * @description launch app
+	 */
 	public void launchApp() throws InterruptedException{
 		Map<String, Object> app = new HashMap<>();	
 		app.put("name", appName);
 		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);		
 	}
 
-	public void closeApp(){		
-		cleanApp();
-		driver.closeApp();
-	}
-	
 	public void cleanApp(){		
 		Map<String, Object> clean = new HashMap<>();	
 		clean.put("name", appName);	
