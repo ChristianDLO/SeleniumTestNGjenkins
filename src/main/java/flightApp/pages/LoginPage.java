@@ -8,6 +8,7 @@ import io.appium.java_client.AppiumDriver;
 public class LoginPage {
 	AppiumDriver<WebElement> driver;
 
+	@SuppressWarnings("unchecked")
 	public LoginPage(WebDriver driver) {
 		this.driver = (AppiumDriver<WebElement>) driver;
 	}

@@ -8,34 +8,25 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import flightApp.pages.HomePage;
-import flightApp.pages.LoginPage;
 import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.ios.IOSDriver;
 import utils.BaseDriver;
 import utils.WindTunnelUtils;
 
 public class Verify_Login extends BaseDriver {
 
-	WebDriver driver; 
 	@Test	
 	public void FlightLogin() throws Exception {
 		 
-		LoginPage login = new LoginPage(this.driver);	
-		HomePage home = new HomePage(this.driver);
 		// Closes the What's new popup which is found on android devices alone.
 		clickbyAndroidXpath(login.chkNew, true, 60);
 		checkXpath(login.txtUserName, 2);
-/*		//Proceed to login
+		//Proceed to login
 		login();
 
 		//Verify contents
@@ -45,13 +36,14 @@ public class Verify_Login extends BaseDriver {
 		checkXpath(home.lblProfile, 1);
 
 		//Logout
-		logout();	*/	
+		logout();		
 		 
 	}
 
 	@BeforeClass 
 	public void beforeClass(ITestContext context) throws Exception, IOException{
-		driver = driverObj(context);
+		driverObj(context);
+		initPages();
 	}
 
 
@@ -67,13 +59,7 @@ public class Verify_Login extends BaseDriver {
 			
 			}else{
 				cleanApp();
-				((AppiumDriver<WebElement>)driver).closeApp();
-				
-			/*	if(deviceType.equalsIgnoreCase("ios")) {
-					((IOSDriver<WebElement>)driver).closeApp();
-				} else if (deviceType.equals("AppiumAndroid")) {
-					((AndroidDriver<WebElement>)driver).closeApp();
-				}*/ 
+				((AppiumDriver<?>)driver).closeApp();
 				((AppiumDriver<?>)driver).close();
 			}		
 
@@ -95,7 +81,7 @@ public class Verify_Login extends BaseDriver {
 		}
 	}
 
-/*	public void login() throws Exception {
+	public void login() throws Exception {
 
 		sendKeysbyXpath(login.txtUserName, "genesist", 2);
 		sendKeysbyXpath(login.txtPassword, this.property.getProperty("perfecto.password"), 2);
@@ -118,7 +104,6 @@ public class Verify_Login extends BaseDriver {
 		clickbyXpath(home.btnMore, false, 4);
 		clickbyXpath(home.btnLogout, false, 5);
 
-	}*/
-
+	}
 
 }

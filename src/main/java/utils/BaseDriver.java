@@ -61,6 +61,9 @@ public  class BaseDriver {
 	@XmlTransient public Properties property;
 	DesiredCapabilities capabilities = null;
 
+	protected LoginPage login;
+	protected HomePage home;
+
 	/**
 	 * Download the report. 
 	 * type - pdf, html, csv, xml
@@ -282,11 +285,9 @@ public  class BaseDriver {
 	public WebDriver driverObj(ITestContext context) throws Exception {
 
 		property = (Properties) System.getProperties().clone();
-		testParams = null;
 		testParams = context.getCurrentXmlTest().getAllParameters();
 		retries = Integer.parseInt(testParams.get("perfecto.retries"));
 		retryIntervalSec = Integer.parseInt(testParams.get("perfecto.retryIntervalSec"));
-
 		perfectoDriver = testParams.get("perfectoDriver");		
 		appName = testParams.get("perfect.app");
 		appDetail = testParams.get("package");
@@ -643,9 +644,10 @@ public  class BaseDriver {
 	}
 
 
-	/*Initilize the pages here
-	public void initPages(WebDriver driverObj) {
+	//Initilize the pages here
+	public void initPages() {
+		login = new LoginPage(this.driver);	
+		home = new HomePage(this.driver);
 
-
-	}*/
+	}
 }
