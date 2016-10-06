@@ -30,7 +30,7 @@ public class Verify_Login extends BaseDriver {
 		login();
 
 		//Verify contents
-		checkXpath(home.lblRecentActivity, 100);
+		checkXpath(home.lblRecentActivity, 90);
 		checkXpath(home.lblSkymiles, 1);
 		checkXpath(home.lblMyTrips, 1);
 		checkXpath(home.lblProfile, 1);
