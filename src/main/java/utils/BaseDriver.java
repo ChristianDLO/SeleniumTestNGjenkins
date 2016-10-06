@@ -1,6 +1,5 @@
 package utils;
 
-import java.awt.Desktop;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -16,25 +15,23 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.xml.bind.annotation.XmlTransient;
 import java.util.concurrent.TimeUnit;
+
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.*;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.ITestContext;
 
 import com.perfectomobile.selenium.util.EclipseConnector;
@@ -55,12 +52,12 @@ public  class BaseDriver {
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
 	public static String appDetail;
-	public String appName;
-	public static String deviceType;
+	public String appName = "";
+	public static String deviceType = "";
 	public static String perfectoDriver = "";
-	protected LoginPage login = new LoginPage(this.driver);	
-	protected HomePage home = new HomePage(this.driver);	
-	int retries = 3;
+	protected LoginPage login;
+	protected HomePage home;
+	int retries;
 	@XmlTransient public Properties property;
 
 	/**
@@ -298,18 +295,26 @@ public  class BaseDriver {
 			capabilities.setCapability("automationName", "Appium");
 		}
 
+		if (testParams.get("deviceName").isEmpty() && testParams.get("model").isEmpty()) {
+			throw new Exception("Perfecto device name or model should not be empty in testng,xml");
+		}
+
 		if (!testParams.get("deviceName").isEmpty()) {
 			capabilities.setCapability("deviceName", testParams.get("deviceName"));
 		} else {
-			capabilities.setCapability("platformName", testParams.get("platformName"));
-			capabilities.setCapability("platformVersion", testParams.get("platformVersion"));
-			capabilities.setCapability("manufacturer", testParams.get("manufacturer"));
-			capabilities.setCapability("model", testParams.get("model"));
+			if (!testParams.get("platformName").isEmpty()) capabilities.setCapability("platformName", testParams.get("platformName"));
+			if (!testParams.get("platformVersion").isEmpty()) capabilities.setCapability("platformVersion", testParams.get("platformVersion"));
+			if (!testParams.get("manufacturer").isEmpty()) capabilities.setCapability("manufacturer", testParams.get("manufacturer"));
+			if (!testParams.get("model").isEmpty()) capabilities.setCapability("model", testParams.get("model"));
 		}
 
 		capabilities.setCapability("user", testParams.get("perfecto.username"));
 		capabilities.setCapability("password", property.getProperty("perfecto.password"));
-		//capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA); - optional
+
+		if (!testParams.get("perfecto.WIND_TUNNEL_PERSONA_CAPABILITY").equalsIgnoreCase("false")){
+			capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA); 
+		}
+
 		capabilities.setCapability("noReset", false);
 		capabilities.setCapability("takesScreenshot", true);
 		capabilities.setCapability("outputReport", true);
@@ -346,6 +351,7 @@ public  class BaseDriver {
 
 		boolean waitForDevice = true;
 		int retryIntervalSec = 1;
+		retries = 5;
 		deviceType = testParams.get("deviceType");
 
 		do {
@@ -353,10 +359,11 @@ public  class BaseDriver {
 				if (perfectoDriver.equalsIgnoreCase("RemoteWebDriver")) {
 					driver = new RemoteWebDriver(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 				} else {
+
 					if (deviceType.equalsIgnoreCase("IOS")) {
 						capabilities.setCapability("bundleId", appDetail);
 						driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
-					} else {
+					} else if (deviceType.equalsIgnoreCase("Android")){
 						capabilities.setCapability("appPackage", appDetail);
 						driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 					}	
@@ -369,11 +376,12 @@ public  class BaseDriver {
 				retries--;
 				System.out.println("\n\nDevice in use....reconnecting again....: " + capabilities.toString() + "\n Retries Left: " + retries);
 				sleep(retryIntervalSec * 1000);
-				if(retries < 0) {
+
+				if (retries < 0) {
 					waitForDevice = false;
 				}
 			}
-		} while(waitForDevice); 
+		} while (waitForDevice); 
 
 		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
 		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
@@ -391,25 +399,253 @@ public  class BaseDriver {
 	 * @param millis
 	 */
 	private static void sleep(long millis) {
+
 		try {
 			Thread.sleep(millis);
 		} catch (InterruptedException e) {
 		}
+
 	}	
 
 
 	/**
 	 * @description launch app
 	 */
-	public void launchApp() throws InterruptedException{
+	public void launchApp() throws InterruptedException {
+
 		Map<String, Object> app = new HashMap<>();	
 		app.put("name", appName);
-		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);		
+		((JavascriptExecutor) driver).executeScript("mobile:application:open", app);	
+
 	}
 
-	public void cleanApp(){		
+	/**
+	 * @description Cleans app
+	 * */
+	public void cleanApp() {		
+
 		Map<String, Object> clean = new HashMap<>();	
 		clean.put("name", appName);	
 		((JavascriptExecutor) driver).executeScript("mobile:application:clean", clean);
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @return WebElement
+	 */
+	private WebElement setWaitMethod(final By locator, long timeOut) {
+
+		WebElement webElement = null;
+		webElement = wait(locator, driver, timeOut);
+		return webElement;
+
+	}
+
+	/**
+	 * @param by
+	 * @param timeout
+	 * @return WebElement
+	 * @throws Exception
+	 */
+	public WebElement findElementByXpath(By by, long timeOut) throws Exception {
+
+		WebElement webElement = setWaitMethod(by, timeOut);
+		if (webElement!=null) {
+			if(testParams.get("RunMode").equals("Debug")) {
+				System.out.println("XpathFound: " + by);
+			}
+			return webElement;	
+		}
+		return null;
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @param report
+	 * @return WebElement
+	 * @throws Exception
+	 */
+	public void clickbyXpath(By by, boolean report, long timeOut) throws Exception {
+
+		WebElement webElement = findElementByXpath(by, timeOut);
+
+		if (webElement!=null) {
+			if(testParams.get("RunMode").equals("Debug")) {
+				System.out.println("clicking on: " + by.toString());
+			}
+			webElement.click();
+		} else {
+			if (report) throw new Exception ("element : " + by.toString() + " not clicked");
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @param report
+	 * @return WebElement
+	 * @throws Exception
+	 */
+	public void clickbyAndroidXpath(By by, boolean report, long timeOut) throws Exception {
+
+		if (deviceType.equalsIgnoreCase("Android")) {		
+			WebElement webElement = findElementByXpath(by, timeOut);
+
+			if (webElement!=null) {
+				if(testParams.get("RunMode").equals("Debug")) {
+					System.out.println("clicking on: " + by.toString());
+				}
+				webElement.click();
+			} else {
+				if (report) throw new Exception ("element : " + by.toString() + "is  not clicked");
+			}
+
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @param report
+	 * @return WebElement
+	 * @throws Exception
+	 */
+	public void clickbyIOSXpath(By by, boolean report, long timeOut) throws Exception {
+
+		if (deviceType.equalsIgnoreCase("iOS")) {		
+			WebElement webElement = findElementByXpath(by, timeOut);
+
+			if (webElement!=null) {
+				if(testParams.get("RunMode").equals("Debug")) {
+					System.out.println("clicking on: " + by.toString());
+				}
+				webElement.click();
+			} else {
+				if (report) throw new Exception ("element : " + by.toString() + "is  not clicked");
+			}
+
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param text
+	 * @param timeout
+	 * @return void
+	 * @throws Exception
+	 */
+	public void sendKeysbyXpath(By by, String text, long timeOut) throws Exception {
+
+		WebElement webElement = findElementByXpath(by, timeOut);
+
+		if (webElement!=null) {
+			if(testParams.get("RunMode").equals("Debug")) {
+				System.out.println("sending keys to: " + by.toString());
+			}
+			webElement.sendKeys(text);
+		} else {
+			throw new Exception ("Unable to send keys to element : " + by.toString() );
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public boolean checkAndroidXpath(By by, long timeOut) throws Exception {
+
+		if (BaseDriver.deviceType.equalsIgnoreCase("Android")) {			
+			WebElement webElement = findElementByXpath(by, timeOut);
+
+			if (webElement!=null) {
+
+				if (testParams.get("RunMode").equals("Debug")) {
+					System.out.println("checking if exists: " + by.toString() + " in Android");
+				}
+
+			}
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public boolean checkIOSXpath(By by, long timeOut) throws Exception {
+
+		if (BaseDriver.deviceType.equalsIgnoreCase("iOS")) {			
+			WebElement webElement = findElementByXpath(by, timeOut);
+
+			if (webElement!=null) {
+
+				if (testParams.get("RunMode").equals("Debug")) {
+					System.out.println("checking if exists: " + by.toString() + " in IOS");
+				}
+
+			}
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public void checkXpath(By by, long timeOut) throws Exception {
+
+		WebElement webElement = findElementByXpath(by, timeOut);
+
+		if (webElement!=null) {
+
+			if (testParams.get("RunMode").equals("Debug")) {
+				System.out.println("checking if exists: " + by.toString());
+			}
+
+		} 
+
+	}
+
+	/**
+	 * @param By
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public void clickifTextExistsAndroid(String text, long timeOut) throws Exception {
+
+		if (deviceType.equalsIgnoreCase("Android")) {
+			Map<String, Object> send = new HashMap<>();
+			send.put("label", text);
+			send.put("timeout", timeOut);
+			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
+		}
+	}
+
+
+	/*Initilize the pages here*/
+	protected void initPages() {
+		login = new LoginPage(this.driver);	
+		home = new HomePage(this.driver);	
 	}
 }
