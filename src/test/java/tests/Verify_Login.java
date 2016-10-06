@@ -5,65 +5,77 @@ import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import flightApp.pages.HomePage;
+import flightApp.pages.LoginPage;
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
 import utils.BaseDriver;
 import utils.WindTunnelUtils;
 
 public class Verify_Login extends BaseDriver {
 
+	WebDriver driver; 
 	@Test	
 	public void FlightLogin() throws Exception {
-		/*Proceed to login*/
+		 
+		LoginPage login = new LoginPage(this.driver);	
+		HomePage home = new HomePage(this.driver);
+		// Closes the What's new popup which is found on android devices alone.
+		clickbyAndroidXpath(login.chkNew, true, 60);
+		checkXpath(login.txtUserName, 2);
+/*		//Proceed to login
 		login();
 
-		/*Verify contents*/
-		checkXpath(home.lblRecentActivity, 30);
+		//Verify contents
+		checkXpath(home.lblRecentActivity, 100);
 		checkXpath(home.lblSkymiles, 1);
 		checkXpath(home.lblMyTrips, 1);
 		checkXpath(home.lblProfile, 1);
 
-		/*Logout*/
-		logout();		
-		
+		//Logout
+		logout();	*/	
+		 
 	}
 
 	@BeforeClass 
 	public void beforeClass(ITestContext context) throws Exception, IOException{
-		driverObj(context);		
-		initPages();
+		driver = driverObj(context);
 	}
 
-
-	@BeforeMethod
-	public void beforeTests() throws Exception {
-		// Closes the What's new popup which is found on android devices alone.
-		clickbyAndroidXpath(login.chkNew, false, 5);
-		checkXpath(login.txtUserName, 2);
-		
-	}
 
 	@AfterClass
 	public void afterClass() throws IOException {
 
 		try {			
-			/* Close the applicaiton based on the driver object */
+			/* Close the application & driver based on the driver object */
 			if(perfectoDriver.equalsIgnoreCase("RemoteWebDriver")){
-				((RemoteWebDriver) driver).close();
+				Map<String, Object> appParam = new HashMap<>();
+				appParam.put("name", appName);
+				((RemoteWebDriver) driver).executeScript("mobile:application:close", appParam);
+			
 			}else{
 				cleanApp();
-				((AppiumDriver<?>)driver).closeApp();
-			}
-
-			/* Close the driver object */
-			driver.close();			
+				((AppiumDriver<WebElement>)driver).closeApp();
+				
+			/*	if(deviceType.equalsIgnoreCase("ios")) {
+					((IOSDriver<WebElement>)driver).closeApp();
+				} else if (deviceType.equals("AppiumAndroid")) {
+					((AndroidDriver<WebElement>)driver).closeApp();
+				}*/ 
+				((AppiumDriver<?>)driver).close();
+			}		
 
 			/* Report Generation*/
 			String reportURL = (String)(((RemoteWebDriver) driver).getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
@@ -80,34 +92,33 @@ public class Verify_Login extends BaseDriver {
 			e.printStackTrace();
 		} finally {
 			driver.quit();
-			driver.quit();
 		}
 	}
 
-	public void login() throws Exception {
-		
+/*	public void login() throws Exception {
+
 		sendKeysbyXpath(login.txtUserName, "genesist", 2);
 		sendKeysbyXpath(login.txtPassword, this.property.getProperty("perfecto.password"), 2);
 		clickDoneorSend();
 		sendKeysbyXpath(login.txtLastName, "Gnanadhas Isaac", 2);
 		clickDoneorSend();
 		clickbyIOSXpath(login.btnLogin, false, 5);
-		
+
 	}
 
 	public void clickDoneorSend() throws Exception {
-		
+
 		clickifTextExistsAndroid("Send", 3);
 		clickbyIOSXpath(login.btnDone, false, 3);
-		
+
 	}
 
 	public void logout() throws Exception {
-		
+
 		clickbyXpath(home.btnMore, false, 4);
 		clickbyXpath(home.btnLogout, false, 5);
-		
-	}
+
+	}*/
 
 
 }

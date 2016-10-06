@@ -51,14 +51,15 @@ public  class BaseDriver {
 	public WebDriver driver = null;
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
-	public static String appDetail;
-	public String appName = "";
-	public static String deviceType = "";
-	public static String perfectoDriver = "";
-	protected LoginPage login;
-	protected HomePage home;
+	public String appDetail;
+	public String appName;
+	public String deviceType;
+	public String perfectoDriver;
+
 	int retries;
+	int retryIntervalSec;
 	@XmlTransient public Properties property;
+	DesiredCapabilities capabilities = null;
 
 	/**
 	 * Download the report. 
@@ -280,9 +281,11 @@ public  class BaseDriver {
 	 */
 	public WebDriver driverObj(ITestContext context) throws Exception {
 
-		DesiredCapabilities capabilities;
 		property = (Properties) System.getProperties().clone();
+		testParams = null;
 		testParams = context.getCurrentXmlTest().getAllParameters();
+		retries = Integer.parseInt(testParams.get("perfecto.retries"));
+		retryIntervalSec = Integer.parseInt(testParams.get("perfecto.retryIntervalSec"));
 
 		perfectoDriver = testParams.get("perfectoDriver");		
 		appName = testParams.get("perfect.app");
@@ -350,20 +353,17 @@ public  class BaseDriver {
 		}
 
 		boolean waitForDevice = true;
-		int retryIntervalSec = 1;
-		retries = 5;
 		deviceType = testParams.get("deviceType");
 
 		do {
 			try {		
 				if (perfectoDriver.equalsIgnoreCase("RemoteWebDriver")) {
 					driver = new RemoteWebDriver(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
-				} else {
-
-					if (deviceType.equalsIgnoreCase("IOS")) {
+				} else if (perfectoDriver.equalsIgnoreCase("Appium")){
+					if (deviceType.equalsIgnoreCase("iOS")) {
 						capabilities.setCapability("bundleId", appDetail);
 						driver = new IOSDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities); 
-					} else if (deviceType.equalsIgnoreCase("Android")){
+					} else {
 						capabilities.setCapability("appPackage", appDetail);
 						driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 					}	
@@ -564,7 +564,7 @@ public  class BaseDriver {
 	 */
 	public boolean checkAndroidXpath(By by, long timeOut) throws Exception {
 
-		if (BaseDriver.deviceType.equalsIgnoreCase("Android")) {			
+		if (deviceType.equalsIgnoreCase("Android")) {			
 			WebElement webElement = findElementByXpath(by, timeOut);
 
 			if (webElement!=null) {
@@ -589,7 +589,7 @@ public  class BaseDriver {
 	 */
 	public boolean checkIOSXpath(By by, long timeOut) throws Exception {
 
-		if (BaseDriver.deviceType.equalsIgnoreCase("iOS")) {			
+		if (deviceType.equalsIgnoreCase("iOS")) {			
 			WebElement webElement = findElementByXpath(by, timeOut);
 
 			if (webElement!=null) {
@@ -643,9 +643,9 @@ public  class BaseDriver {
 	}
 
 
-	/*Initilize the pages here*/
-	protected void initPages() {
-		login = new LoginPage(this.driver);	
-		home = new HomePage(this.driver);	
-	}
+	/*Initilize the pages here
+	public void initPages(WebDriver driverObj) {
+
+
+	}*/
 }

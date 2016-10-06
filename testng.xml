@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Suite" parallel="tests" thread-count="5">
+<suite name="Suite" parallel="tests" thread-count="10">
+
 	<parameter name="perfecto.url" value="demo.perfectomobile.com" />
 	<parameter name="perfecto.username" value="genesist@perfectomobile.com" />
 	<!-- <parameter name="perfecto.password" value="" /> --> <!-- Pass it from VM arguments -->
-	<parameter name="RunMode" value="Debug" /> <!-- Debug -->
+	<parameter name="RunMode" value="Auto" /> <!-- Debug -->
 	<parameter name="proxy.url" value="" />
 	<parameter name="proxy.port" value="" />
 	<parameter name="proxy.user" value="" />
 	<parameter name="proxy.pass" value="" />
 	<parameter name="perfecto.WIND_TUNNEL_PERSONA_CAPABILITY" value="false" />
+	<parameter name="perfecto.retries" value="5" />
+	<parameter name="perfecto.retryIntervalSec" value="1" />
+	
 	
 	<test name="Android Verification" parallel="tests" thread-count="2">
 		<parameter name="platformName" value="Android" />
@@ -26,6 +30,7 @@
 			<class name="tests.Verify_Login" />
 		</classes>
 	</test>
+	
 	<test name="IOS Verification" parallel="tests" thread-count="2">
 		<parameter name="platformName" value="iOS" />
 		<parameter name="platformVersion" value="[45].*" />
@@ -38,6 +43,7 @@
 		<parameter name="perfect.app" value="Fly Delta" />
 		<classes>
 			<class name="tests.Verify_Login" />
-		</classes>
+		</classes>		
 	</test>
+	
 </suite> 
