@@ -52,12 +52,12 @@ public class Verify_Login extends BaseDriver {
 
 		try {			
 			/* Close the application & driver based on the driver object */
-			if(perfectoDriver.equalsIgnoreCase("RemoteWebDriver")){
+			if (perfectoDriver.equalsIgnoreCase("RemoteWebDriver")) {
 				Map<String, Object> appParam = new HashMap<>();
-				appParam.put("name", appName);
+				appParam.put("name", appDetail);
 				((RemoteWebDriver) driver).executeScript("mobile:application:close", appParam);
 			
-			}else{
+			} else {
 				cleanApp();
 				((AppiumDriver<?>)driver).closeApp();
 				((AppiumDriver<?>)driver).close();

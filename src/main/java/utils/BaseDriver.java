@@ -368,11 +368,12 @@ public  class BaseDriver {
 						capabilities.setCapability("appPackage", appDetail);
 						driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 					}	
-
+				}
+				
 					if (!(driver == null)) {
 						waitForDevice = false;
 					}
-				}
+				
 			} catch (Exception e) {
 				retries--;
 				System.out.println("\n\nDevice in use....reconnecting again....: " + capabilities.toString() + "\n Retries Left: " + retries);
@@ -626,9 +627,24 @@ public  class BaseDriver {
 		} 
 
 	}
+	
 
 	/**
-	 * @param By
+	 * @param text
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public void clickText(String text, long timeOut) throws Exception {
+
+			Map<String, Object> send = new HashMap<>();
+			send.put("label", text);
+			send.put("timeout", timeOut);
+			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
+}
+
+	/**
+	 * @param text
 	 * @param timeout
 	 * @return boolean
 	 * @throws Exception
@@ -641,6 +657,35 @@ public  class BaseDriver {
 			send.put("timeout", timeOut);
 			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
 		}
+	}
+
+	/**
+	 * @param name
+	 * @param text
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public void sendKeysText(String name, String text, long timeOut) throws Exception {
+		Map<String, Object> send = new HashMap<>();
+		send.put("label", name);
+		send.put("text", name);
+		send.put("timeout", timeOut);
+		((RemoteWebDriver) driver).executeScript("mobile:edit-text:set", send);
+	}
+
+
+	/**
+	 * @param name
+	 * @param timeout
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public void checkText(String name,  long timeOut) throws Exception {
+		Map<String, Object> params1 = new HashMap<>();
+		params1.put("content", name);
+		params1.put("timeout", timeOut);
+		((RemoteWebDriver) driver).executeScript("mobile:checkpoint:text", params1);
 	}
 
 
