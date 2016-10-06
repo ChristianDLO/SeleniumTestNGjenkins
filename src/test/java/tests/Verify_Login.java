@@ -26,8 +26,9 @@ public class Verify_Login extends BaseDriver {
 		// Closes the What's new popup which is found on android devices alone.
 		clickbyAndroidXpath(login.chkNew, true, 60);
 		checkXpath(login.txtUserName, 2);
+		
 		//Proceed to login
-		login();
+		login("genesist", "Gnanadhas Isaac");
 
 		//Verify contents
 		checkXpath(home.lblRecentActivity, 90);
@@ -81,12 +82,12 @@ public class Verify_Login extends BaseDriver {
 		}
 	}
 
-	public void login() throws Exception {
+	public void login(String user, String name) throws Exception {
 
-		sendKeysbyXpath(login.txtUserName, "genesist", 2);
+		sendKeysbyXpath(login.txtUserName, user, 2);
 		sendKeysbyXpath(login.txtPassword, this.property.getProperty("perfecto.password"), 2);
 		clickDoneorSend();
-		sendKeysbyXpath(login.txtLastName, "Gnanadhas Isaac", 2);
+		sendKeysbyXpath(login.txtLastName, name, 2);
 		clickDoneorSend();
 		clickbyIOSXpath(login.btnLogin, false, 5);
 
