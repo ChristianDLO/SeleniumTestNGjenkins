@@ -31,7 +31,8 @@ public class Verify_Login extends BaseDriver {
 		login("genesist", "Gnanadhas Isaac");
 
 		//Verify contents
-		checkXpath(home.lblRecentActivity, 90);
+		checkText("Recent Activity", 100);
+		checkXpath(home.lblRecentActivity, 1);
 		checkXpath(home.lblSkymiles, 1);
 		checkXpath(home.lblMyTrips, 1);
 		checkXpath(home.lblProfile, 1);
