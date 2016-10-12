@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
@@ -19,33 +20,34 @@ import utils.BaseDriver;
 import utils.WindTunnelUtils;
 
 public class Verify_Login extends BaseDriver {
-
+	WebDriver driver;
 	@Test	
 	public void FlightLogin() throws Exception {
-		 
+
 		// Closes the What's new popup which is found on android devices alone.
-		clickbyAndroidXpath(login.chkNew, true, 60);
-		checkXpath(login.txtUserName, 2);
-		
+		clickbyAndroidXpath(login.chkNew, driver, testParams, true, 60);
+		checkXpath(login.txtUserName, driver, testParams, 2);
+
 		//Proceed to login
-		login("genesist", "Gnanadhas Isaac");
+		common.login(login, driver, testParams, "genesist", "Gnanadhas Isaac");
 
 		//Verify contents
-		checkText("Recent Activity", 100);
-		checkXpath(home.lblRecentActivity, 1);
-		checkXpath(home.lblSkymiles, 1);
-		checkXpath(home.lblMyTrips, 1);
-		checkXpath(home.lblProfile, 1);
+		checkText("Recent Activity", driver, 100);
+		checkXpath(home.lblRecentActivity, driver, testParams, 60);
+		checkXpath(home.lblSkymiles, driver, testParams, 1);
+		checkXpath(home.lblMyTrips, driver, testParams, 1);
+		checkXpath(home.lblProfile, driver, testParams, 1);
 
 		//Logout
-		logout();		
-		 
+		common.logout(home, driver, testParams);		
+
 	}
 
 	@BeforeClass 
 	public void beforeClass(ITestContext context) throws Exception, IOException{
-		driverObj(context);
+		driver = driverObj(context);
 		initPages();
+
 	}
 
 
@@ -58,7 +60,7 @@ public class Verify_Login extends BaseDriver {
 				Map<String, Object> appParam = new HashMap<>();
 				appParam.put("name", appDetail);
 				((RemoteWebDriver) driver).executeScript("mobile:application:close", appParam);
-			
+
 			} else {
 				cleanApp();
 				((AppiumDriver<?>)driver).closeApp();
@@ -68,7 +70,7 @@ public class Verify_Login extends BaseDriver {
 			/* Report Generation*/
 			String reportURL = (String)(((RemoteWebDriver) driver).getCapabilities().getCapability(WindTunnelUtils.WIND_TUNNEL_REPORT_URL_CAPABILITY));
 			System.out.println(reportURL);
-			BaseDriver.downloadReport((RemoteWebDriver)driver, "pdf", "C:\\temp\\" + this.getClass().getName() + new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()));
+			BaseDriver.downloadReport((RemoteWebDriver) driver, "pdf", "C:\\temp\\" + this.getClass().getName() + new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()));
 
 			/* Quits the driver object */
 			driver.quit();
@@ -81,31 +83,6 @@ public class Verify_Login extends BaseDriver {
 		} finally {
 			driver.quit();
 		}
-	}
-
-	public void login(String user, String name) throws Exception {
-
-		sendKeysbyXpath(login.txtUserName, user, 2);
-		sendKeysbyXpath(login.txtPassword, this.property.getProperty("perfecto.password"), 2);
-		clickDoneorSend();
-		sendKeysbyXpath(login.txtLastName, name, 2);
-		clickDoneorSend();
-		clickbyIOSXpath(login.btnLogin, false, 5);
-
-	}
-
-	public void clickDoneorSend() throws Exception {
-
-		clickifTextExistsAndroid("Send", 3);
-		clickbyIOSXpath(login.btnDone, false, 3);
-
-	}
-
-	public void logout() throws Exception {
-
-		clickbyXpath(home.btnMore, false, 4);
-		clickbyXpath(home.btnLogout, false, 5);
-
 	}
 
 }

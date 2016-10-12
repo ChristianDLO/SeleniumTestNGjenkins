@@ -15,7 +15,6 @@ public class LoginPage {
 
 	// Page elements
 	public By btnLogin = By.xpath("//*[@text=\"Log In\" or @label=\"Log In\"]");
-	public By btnDone = By.xpath("//*[@label=\"DONE\"]");
 	public By txtUserName   = By.xpath("//*[@text=\"SkyMiles® Number or Username\" or @value=\"SkyMiles® Number or Username\"]");
 	public By txtPassword   = By.xpath("//*[@password=\"true\" or @value=\"Password\"]");
 	public By txtLastName   = By.xpath("//*[@value=\"Last name\" or @text=\"Last Name\"]");

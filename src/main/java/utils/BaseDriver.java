@@ -36,6 +36,7 @@ import org.testng.ITestContext;
 
 import com.perfectomobile.selenium.util.EclipseConnector;
 
+import flightApp.pages.Common;
 import flightApp.pages.HomePage;
 import flightApp.pages.LoginPage;
 import io.appium.java_client.AppiumDriver;
@@ -48,19 +49,20 @@ public  class BaseDriver {
 	private static final String MEDIA_REPOSITORY = "/services/repositories/media/";
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
-	public WebDriver driver = null;
+	public  WebDriver driver = null;
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
-	public String appDetail;
-	public String appName;
-	public String deviceType;
-	public String perfectoDriver;
+	public String appDetail = "";
+	public String appName = "";
+	public String deviceType = "";
+	public String perfectoDriver = "";
 
 	int retries;
 	int retryIntervalSec;
 	@XmlTransient public Properties property;
 	DesiredCapabilities capabilities = null;
 
+	protected Common common;
 	protected LoginPage login;
 	protected HomePage home;
 
@@ -263,11 +265,10 @@ public  class BaseDriver {
 
 	/**
 	 * @param locator
-	 * @param driver
 	 * @param timeout
 	 * @description  Waits for objects to load before proceding !!! 
 	 */
-	public static WebElement wait(final By locator, WebDriver driver, long timeout) {	 
+	public  WebElement wait(final By locator, WebDriver driver, long timeout) {	 
 
 		try {
 			driver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);		
@@ -284,7 +285,7 @@ public  class BaseDriver {
 	 */
 	public WebDriver driverObj(ITestContext context) throws Exception {
 
-		property = (Properties) System.getProperties().clone();
+		property = getProperty();
 		testParams = context.getCurrentXmlTest().getAllParameters();
 		retries = Integer.parseInt(testParams.get("perfecto.retries"));
 		retryIntervalSec = Integer.parseInt(testParams.get("perfecto.retryIntervalSec"));
@@ -354,7 +355,7 @@ public  class BaseDriver {
 		}
 
 		boolean waitForDevice = true;
-		deviceType = testParams.get("deviceType");
+		deviceType = getdeviceType(testParams);
 
 		do {
 			try {		
@@ -369,12 +370,13 @@ public  class BaseDriver {
 						driver = new AndroidDriver<>(new URL("https://" + perfectoHost + "/nexperience/perfectomobile/wd/hub"), capabilities);
 					}	
 				}
-				
-					if (!(driver == null)) {
-						waitForDevice = false;
-					}
-				
+
+				if (!(driver == null)) {
+					waitForDevice = false;
+				}
+
 			} catch (Exception e) {
+				driver = null;
 				retries--;
 				System.out.println("\n\nDevice in use....reconnecting again....: " + capabilities.toString() + "\n Retries Left: " + retries);
 				sleep(retryIntervalSec * 1000);
@@ -393,7 +395,7 @@ public  class BaseDriver {
 			((AppiumDriver<?>)driver).context("NATIVE_APP");
 		}
 
-		return driver;	
+		return this.driver;	
 	}
 
 
@@ -437,7 +439,7 @@ public  class BaseDriver {
 	 * @param timeout
 	 * @return WebElement
 	 */
-	private WebElement setWaitMethod(final By locator, long timeOut) {
+	private WebElement setWaitMethod(final By locator, WebDriver driver, long timeOut) {
 
 		WebElement webElement = null;
 		webElement = wait(locator, driver, timeOut);
@@ -451,13 +453,15 @@ public  class BaseDriver {
 	 * @return WebElement
 	 * @throws Exception
 	 */
-	public WebElement findElementByXpath(By by, long timeOut) throws Exception {
+	public WebElement findElementByXpath(By by, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
 
-		WebElement webElement = setWaitMethod(by, timeOut);
+		WebElement webElement = setWaitMethod(by, driver, timeOut);
+
 		if (webElement!=null) {
 			if(testParams.get("RunMode").equals("Debug")) {
 				System.out.println("XpathFound: " + by);
 			}
+
 			return webElement;	
 		}
 		return null;
@@ -471,14 +475,15 @@ public  class BaseDriver {
 	 * @return WebElement
 	 * @throws Exception
 	 */
-	public void clickbyXpath(By by, boolean report, long timeOut) throws Exception {
+	public void clickbyXpath(By by, WebDriver driver, Map<String, String> testParams, boolean report, long timeOut) throws Exception {
 
-		WebElement webElement = findElementByXpath(by, timeOut);
+		WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 		if (webElement!=null) {
 			if(testParams.get("RunMode").equals("Debug")) {
 				System.out.println("clicking on: " + by.toString());
 			}
+
 			webElement.click();
 		} else {
 			if (report) throw new Exception ("element : " + by.toString() + " not clicked");
@@ -493,15 +498,16 @@ public  class BaseDriver {
 	 * @return WebElement
 	 * @throws Exception
 	 */
-	public void clickbyAndroidXpath(By by, boolean report, long timeOut) throws Exception {
+	public void clickbyAndroidXpath(By by, WebDriver driver, Map<String, String> testParams, boolean report, long timeOut) throws Exception {
 
-		if (deviceType.equalsIgnoreCase("Android")) {		
-			WebElement webElement = findElementByXpath(by, timeOut);
+		if (getdeviceType(testParams).equalsIgnoreCase("Android")) {		
+			WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 			if (webElement!=null) {
 				if(testParams.get("RunMode").equals("Debug")) {
 					System.out.println("clicking on: " + by.toString());
 				}
+
 				webElement.click();
 			} else {
 				if (report) throw new Exception ("element : " + by.toString() + "is  not clicked");
@@ -518,15 +524,16 @@ public  class BaseDriver {
 	 * @return WebElement
 	 * @throws Exception
 	 */
-	public void clickbyIOSXpath(By by, boolean report, long timeOut) throws Exception {
+	public void clickbyIOSXpath(By by, WebDriver driver, Map<String, String> testParams, boolean report, long timeOut) throws Exception {
 
-		if (deviceType.equalsIgnoreCase("iOS")) {		
-			WebElement webElement = findElementByXpath(by, timeOut);
+		if (getdeviceType(testParams).equalsIgnoreCase("iOS")) {		
+			WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 			if (webElement!=null) {
 				if(testParams.get("RunMode").equals("Debug")) {
 					System.out.println("clicking on: " + by.toString());
 				}
+
 				webElement.click();
 			} else {
 				if (report) throw new Exception ("element : " + by.toString() + "is  not clicked");
@@ -543,17 +550,18 @@ public  class BaseDriver {
 	 * @return void
 	 * @throws Exception
 	 */
-	public void sendKeysbyXpath(By by, String text, long timeOut) throws Exception {
+	public void sendKeysbyXpath(By by, WebDriver driver, Map<String, String> testParams, String text, long timeOut) throws Exception {
 
-		WebElement webElement = findElementByXpath(by, timeOut);
+		WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 		if (webElement!=null) {
 			if(testParams.get("RunMode").equals("Debug")) {
 				System.out.println("sending keys to: " + by.toString());
 			}
+
 			webElement.sendKeys(text);
 		} else {
-			throw new Exception ("Unable to send keys to element : " + by.toString() );
+			throw new Exception ("Unable to send text " + text + " to element : " + by.toString() );
 		}
 
 	}
@@ -564,10 +572,10 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public boolean checkAndroidXpath(By by, long timeOut) throws Exception {
+	public boolean checkAndroidXpath(By by, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
 
-		if (deviceType.equalsIgnoreCase("Android")) {			
-			WebElement webElement = findElementByXpath(by, timeOut);
+		if (getdeviceType(testParams).equalsIgnoreCase("Android")) {			
+			WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 			if (webElement!=null) {
 
@@ -576,6 +584,7 @@ public  class BaseDriver {
 				}
 
 			}
+
 			return true;
 		} else {
 			return false;
@@ -589,10 +598,10 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public boolean checkIOSXpath(By by, long timeOut) throws Exception {
+	public boolean checkIOSXpath(By by, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
 
-		if (deviceType.equalsIgnoreCase("iOS")) {			
-			WebElement webElement = findElementByXpath(by, timeOut);
+		if (getdeviceType(testParams).equalsIgnoreCase("iOS")) {			
+			WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 			if (webElement!=null) {
 
@@ -601,6 +610,7 @@ public  class BaseDriver {
 				}
 
 			}
+
 			return true;
 		} else {
 			return false;
@@ -614,9 +624,9 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public void checkXpath(By by, long timeOut) throws Exception {
+	public void checkXpath(By by, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
 
-		WebElement webElement = findElementByXpath(by, timeOut);
+		WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 		if (webElement!=null) {
 
@@ -627,7 +637,7 @@ public  class BaseDriver {
 		} 
 
 	}
-	
+
 
 	/**
 	 * @param text
@@ -635,13 +645,13 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public void clickText(String text, long timeOut) throws Exception {
+	public void clickText(String text, WebDriver driver, long timeOut) throws Exception {
 
-			Map<String, Object> send = new HashMap<>();
-			send.put("label", text);
-			send.put("timeout", timeOut);
-			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
-}
+		Map<String, Object> send = new HashMap<>();
+		send.put("label", text);
+		send.put("timeout", timeOut);
+		((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
+	}
 
 	/**
 	 * @param text
@@ -649,14 +659,15 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public void clickifTextExistsAndroid(String text, long timeOut) throws Exception {
+	public void clickifTextExistsAndroid(String text, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
 
-		if (deviceType.equalsIgnoreCase("Android")) {
+		if (getdeviceType(testParams).equalsIgnoreCase("Android")) {
 			Map<String, Object> send = new HashMap<>();
 			send.put("label", text);
 			send.put("timeout", timeOut);
 			((RemoteWebDriver) driver).executeScript("mobile:button-text:click", send);
 		}
+
 	}
 
 	/**
@@ -666,12 +677,14 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public void sendKeysText(String name, String text, long timeOut) throws Exception {
+	public void sendKeysText(String name, WebDriver driver, String text, long timeOut) throws Exception {
+
 		Map<String, Object> send = new HashMap<>();
 		send.put("label", name);
 		send.put("text", name);
 		send.put("timeout", timeOut);
 		((RemoteWebDriver) driver).executeScript("mobile:edit-text:set", send);
+
 	}
 
 
@@ -681,16 +694,40 @@ public  class BaseDriver {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public void checkText(String name,  long timeOut) throws Exception {
+	public void checkText(String name, WebDriver driver, long timeOut) throws Exception {
+
 		Map<String, Object> params1 = new HashMap<>();
 		params1.put("content", name);
 		params1.put("timeout", timeOut);
 		((RemoteWebDriver) driver).executeScript("mobile:checkpoint:text", params1);
+
+	}
+
+	/**
+	 * @return get property
+	 */
+	public Properties getProperty() {
+
+		return (Properties) System.getProperties().clone();
+
+	}
+
+	/**
+	 * @return get deviceType
+	 */
+
+	public String getdeviceType(Map<String, String> testParams) {
+		
+		deviceType = testParams.get("deviceType");
+		return deviceType;
+
 	}
 
 
 	//Initilize the pages here
 	public void initPages() {
+
+		common = new Common(this.driver);
 		login = new LoginPage(this.driver);	
 		home = new HomePage(this.driver);
 
