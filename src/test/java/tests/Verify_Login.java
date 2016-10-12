@@ -20,7 +20,9 @@ import utils.BaseDriver;
 import utils.WindTunnelUtils;
 
 public class Verify_Login extends BaseDriver {
+	
 	WebDriver driver;
+	
 	@Test	
 	public void FlightLogin() throws Exception {
 
@@ -28,7 +30,7 @@ public class Verify_Login extends BaseDriver {
 		clickbyAndroidXpath(login.chkNew, driver, testParams, true, 60);
 		checkXpath(login.txtUserName, driver, testParams, 2);
 
-		//Proceed to login
+/*		//Proceed to login
 		common.login(login, driver, testParams, "genesist", "Gnanadhas Isaac");
 
 		//Verify contents
@@ -39,7 +41,7 @@ public class Verify_Login extends BaseDriver {
 		checkXpath(home.lblProfile, driver, testParams, 1);
 
 		//Logout
-		common.logout(home, driver, testParams);		
+		common.logout(home, driver, testParams);		*/
 
 	}
 
