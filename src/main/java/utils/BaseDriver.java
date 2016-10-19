@@ -34,6 +34,10 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.ITestContext;
 
+import com.perfecto.reportium.client.ReportiumClient;
+import com.perfecto.reportium.client.ReportiumClientFactory;
+import com.perfecto.reportium.model.PerfectoExecutionContext;
+import com.perfecto.reportium.model.Project;
 import com.perfectomobile.selenium.util.EclipseConnector;
 
 import flightApp.pages.Common;
@@ -50,6 +54,7 @@ public  class BaseDriver {
 	private static final String UPLOAD_OPERATION = "operation=upload&overwrite=true";
 	private static final String UTF_8 = "UTF-8";
 	public  WebDriver driver = null;
+	public ReportiumClient reportiumClient;
 	public Map<String, Object> params = new HashMap<>();
 	public Map<String, String> testParams;
 	public String appDetail = "";
@@ -61,6 +66,7 @@ public  class BaseDriver {
 	int retryIntervalSec;
 	@XmlTransient public Properties property;
 	DesiredCapabilities capabilities = null;
+	protected static final String IS_LOCAL_DRIVER = "is-local-driver";
 
 	protected Common common;
 	protected LoginPage login;
@@ -619,17 +625,21 @@ public  class BaseDriver {
 	}
 
 	/**
-	 * @param By
-	 * @param timeout
-	 * @return boolean
+	 * @param by
+	 * @param driver
+	 * @param reportiumClient
+	 * @param testParams
+	 * @param timeOut
 	 * @throws Exception
 	 */
-	public void checkXpath(By by, WebDriver driver, Map<String, String> testParams, long timeOut) throws Exception {
-
+	public void checkXpath(By by, WebDriver driver, ReportiumClient reportiumClient, Map<String, String> testParams, long timeOut) throws Exception { 
+		
 		WebElement webElement = findElementByXpath(by, driver, testParams, timeOut);
 
 		if (webElement!=null) {
-
+			
+			reportiumClient.testStep("Verify User Name field appears in the Login Page");
+			
 			if (testParams.get("RunMode").equals("Debug")) {
 				System.out.println("checking if exists: " + by.toString());
 			}
@@ -717,7 +727,7 @@ public  class BaseDriver {
 	 */
 
 	public String getdeviceType(Map<String, String> testParams) {
-		
+
 		deviceType = testParams.get("deviceType");
 		return deviceType;
 
@@ -732,4 +742,27 @@ public  class BaseDriver {
 		home = new HomePage(this.driver);
 
 	}
+
+	/**
+	 * Creates an instance of a local WebDriver to use during test development phase, and a remote WebDriver instance
+	 * to use for continuous integration.
+	 * <p>
+	 * The decision which type of driver to create is based on an environment variable.
+	 *
+	 * @return a new WebDriver instance
+	 */
+	protected static ReportiumClient createReportiumClient(WebDriver driver) {
+		return createRemoteReportiumClient(driver);
+	}
+
+
+    private static ReportiumClient createRemoteReportiumClient(WebDriver driver) {
+        PerfectoExecutionContext perfectoExecutionContext = new PerfectoExecutionContext.PerfectoExecutionContextBuilder()
+                .withProject(new Project("Sample Reportium project", "1.0"))
+                .withContextTags("My Sample Test")
+                .withWebDriver(driver)
+                .build();
+        return new ReportiumClientFactory().createPerfectoReportiumClient(perfectoExecutionContext);
+    }
+
 }

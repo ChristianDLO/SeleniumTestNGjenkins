@@ -30,7 +30,7 @@
 			<class name="tests.Verify_Login" />
 		</classes>
 	</test>
-	
+<!-- 	
 	<test name="IOS Verification" parallel="tests">
 		<parameter name="platformName" value="iOS" />
 		<parameter name="platformVersion" value="[45].*" />
@@ -44,6 +44,6 @@
 		<classes>
 			<class name="tests.Verify_Login" />
 		</classes>		
-	</test>
+	</test> -->
 	
 </suite> 
