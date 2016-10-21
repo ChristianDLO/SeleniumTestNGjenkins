@@ -5,7 +5,7 @@
 
 	<parameter name="perfecto.url" value="demo.perfectomobile.com" />
 	<parameter name="perfecto.username" value="genesist@perfectomobile.com" />
-	<!-- <parameter name="perfecto.password" value="" /> --> <!-- Pass it from VM arguments -->
+	<parameter name="perfecto.password" value="" />  <!-- Passwords can be passed from VM arguments too-->
 	<parameter name="RunMode" value="Auto" /> <!-- Debug -->
 	<parameter name="proxy.url" value="" />
 	<parameter name="proxy.port" value="" />

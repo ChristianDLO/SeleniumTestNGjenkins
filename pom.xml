@@ -227,6 +227,11 @@
 			<artifactId>selenium-api</artifactId>
 			<version>${selenium.version}</version>
 		</dependency>
+		   <dependency>
+                <groupId>ru.yandex.qatools.allure</groupId>
+                <artifactId>allure-java-annotations</artifactId>
+                <version>${allure.version}</version>
+            </dependency>
 
 		<!-- Reportium SDK -->
 		<dependency>

@@ -320,7 +320,8 @@ public  class BaseDriver {
 		}
 
 		capabilities.setCapability("user", testParams.get("perfecto.username"));
-		capabilities.setCapability("password", property.getProperty("perfecto.password"));
+		 String password = (!(testParams.get("perfecto.password").isEmpty())) ? testParams.get("perfecto.password") :  property.getProperty("perfecto.password");
+		capabilities.setCapability("password", password);
 
 		if (!testParams.get("perfecto.WIND_TUNNEL_PERSONA_CAPABILITY").equalsIgnoreCase("false")){
 			capabilities.setCapability(WindTunnelUtils.WIND_TUNNEL_PERSONA_CAPABILITY, WindTunnelUtils.GEORGIA); 
